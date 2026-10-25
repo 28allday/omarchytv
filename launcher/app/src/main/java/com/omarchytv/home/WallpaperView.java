@@ -105,7 +105,7 @@ public class WallpaperView extends View {
             android.graphics.BitmapFactory.Options b = new android.graphics.BitmapFactory.Options();
             b.inJustDecodeBounds = true;
             if (custom) android.graphics.BitmapFactory.decodeFile(which, b);
-            else try (java.io.InputStream ai = getContext().getAssets().open(asset)) { android.graphics.BitmapFactory.decodeStream(ai, null, b); }
+            else try (java.io.InputStream ai = openAsset(asset)) { android.graphics.BitmapFactory.decodeStream(ai, null, b); }
             if (b.outWidth <= 0 || b.outHeight <= 0) return render(w, h, density);
             int[] crop = cropRect(b.outWidth, b.outHeight, w, h);
             android.graphics.BitmapFactory.Options o = new android.graphics.BitmapFactory.Options();
@@ -113,7 +113,7 @@ public class WallpaperView extends View {
             o.inSampleSize = sampleFor(crop[2] - crop[0], crop[3] - crop[1], w, h);
             // Decode only the visible crop at (about) display resolution: a 4K wallpaper on a 1080p UI
             // surface decodes at 1920x1080, on a 4K surface at 3840x2160; huge or ultrawide photos stay cheap.
-            try (java.io.InputStream in = custom ? new java.io.FileInputStream(which) : getContext().getAssets().open(asset)) {
+            try (java.io.InputStream in = custom ? new java.io.FileInputStream(which) : openAsset(asset)) {
                 android.graphics.BitmapRegionDecoder dec = android.graphics.BitmapRegionDecoder.newInstance(in, false);
                 src = dec.decodeRegion(new android.graphics.Rect(crop[0], crop[1], crop[2], crop[3]), o);
                 dec.recycle();
@@ -208,6 +208,20 @@ public class WallpaperView extends View {
     }
 
     private Bitmap decodeAsset(String asset, android.graphics.BitmapFactory.Options o) {
+        try {
+            byte[] raw = assetBytes(asset);
+            return android.graphics.BitmapFactory.decodeByteArray(raw, 0, raw.length, o);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Asset stream with base64-wrapped WebP ("UklG…", the 2.12 wallpapers) already decoded. */
+    private java.io.InputStream openAsset(String asset) throws java.io.IOException {
+        return new java.io.ByteArrayInputStream(assetBytes(asset));
+    }
+
+    private byte[] assetBytes(String asset) throws java.io.IOException {
         try (java.io.InputStream in = getContext().getAssets().open(asset)) {
             java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[16384];
@@ -217,9 +231,7 @@ public class WallpaperView extends View {
             if (raw.length >= 4 && raw[0] == 'U' && raw[1] == 'k' && raw[2] == 'l' && raw[3] == 'G') {
                 raw = android.util.Base64.decode(raw, android.util.Base64.DEFAULT);
             }
-            return android.graphics.BitmapFactory.decodeByteArray(raw, 0, raw.length, o);
-        } catch (Exception e) {
-            return null;
+            return raw;
         }
     }
 
