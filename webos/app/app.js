@@ -78,6 +78,8 @@
     saverIdleMin: 2.5,
     saverLogoScale: 0.65,
     saverShowClock: false,
+    offIdleMin: 0,
+    offMode: "screen",
     promptUser: "user",
     promptHost: "omarchytv",
     pcHost: "",
@@ -688,18 +690,37 @@
     ]);
   }
 
-  function openSaverModal() {
+  function openSaverModal(keepFocus) {
+    var focus = state.modalIdx;
     openModal(tr("sys_saver"), "37 tte.js TerminalTextEffects over screensaver-tv.txt", [
       { label: "Preview screensaver now", right: "▶", act: function () { closeModal(); startScreensaver(); } },
       { label: tr("sys_saver_idle"), right: cfg.saverIdleMin === 0 ? "never" : (cfg.saverIdleMin + " min"), act: function () {
         var opts = [1, 2.5, 5, 10, 0];
         cfg.saverIdleMin = opts[(opts.indexOf(cfg.saverIdleMin) + 1) % opts.length];
-        saveCfg(); openSaverModal();
+        saveCfg(); openSaverModal(true);
       } },
       { label: "Clock under logo", right: cfg.saverShowClock ? "on" : "off", act: function () {
-        cfg.saverShowClock = !cfg.saverShowClock; saveCfg(); openSaverModal();
+        cfg.saverShowClock = !cfg.saverShowClock; saveCfg(); openSaverModal(true);
+      } },
+      { label: "Turn off after idle", right: cfg.offIdleMin ? cfg.offIdleMin + " min" : "never", act: function () {
+        var opts = [0, 5, 15, 30, 60, 120];
+        cfg.offIdleMin = opts[(opts.indexOf(cfg.offIdleMin) + 1) % opts.length];
+        saveCfg(); openSaverModal(true);
+      } },
+      { label: "Turn off", right: cfg.offMode === "tv" ? "TV" : "screen only", act: function () {
+        cfg.offMode = cfg.offMode === "tv" ? "screen" : "tv";
+        saveCfg(); openSaverModal(true);
+      } },
+      { label: "TV control", right: tvControlApproved() ? "approved" : "needs approval", act: function () {
+        showToast("Checking TV control… accept the prompt on screen if it appears");
+        ssapRequest("ssap://com.webos.service.tvpower/power/getPowerState", function (ok, info) {
+          showToast(ok ? "TV control approved" : "TV control not available (" + info + ")");
+          if (state.modalOpen) openSaverModal(true);
+        });
       } }
     ]);
+    // Toggling an item re-opens the menu; keep the cursor on it instead of jumping to the top.
+    if (keepFocus) { state.modalIdx = Math.min(focus, state.modalItems.length - 1); renderModalList(); }
   }
 
   function openAllSettingsModal() {
@@ -846,6 +867,53 @@
     clearTimeout(t._timer);
     t._timer = setTimeout(function () { t.style.display = "none"; }, 2600);
   }
+
+  // Turn off after idle. Apps may not call tvpower's turnOffScreen directly ("Denied method call"), but
+  // the TV's own remote-control API (SSAP on ws://127.0.0.1:3000, used by LG's phone app and Home
+  // Assistant) allows it once the user approves this app in an on-screen prompt. The client key from
+  // that approval is kept in localStorage.
+  var SSAP_KEY = "omarchytv_ssap_key";
+  function tvControlApproved() {
+    try { return !!localStorage.getItem(SSAP_KEY); } catch (e) { return false; }
+  }
+  function ssapRequest(uri, done) {
+    var ws, finished = false, timer;
+    function finish(ok, info) {
+      if (finished) return;
+      finished = true; clearTimeout(timer);
+      try { ws.close(); } catch (e) {}
+      if (done) done(ok, info);
+    }
+    try { ws = new WebSocket("ws://127.0.0.1:3000"); } catch (e) { return finish(false, "unavailable"); }
+    timer = setTimeout(function () { finish(false, "no answer"); }, 90000); // time to accept a prompt
+    var payload = { forcePairing: false, pairingType: "PROMPT", manifest: { appVersion: "1.0", manifestVersion: 1,
+      permissions: ["CONTROL_POWER", "CONTROL_TV_SCREEN", "READ_POWER_STATE"] } };
+    try { var key = localStorage.getItem(SSAP_KEY); if (key) payload["client-key"] = key; } catch (e) {}
+    ws.onerror = function () { finish(false, "unavailable"); };
+    ws.onopen = function () { ws.send(JSON.stringify({ type: "register", id: "reg", payload: payload })); };
+    ws.onmessage = function (m) {
+      var msg;
+      try { msg = JSON.parse(m.data); } catch (e) { return; }
+      if (msg.id === "reg" && msg.type === "registered") {
+        try { localStorage.setItem(SSAP_KEY, msg.payload["client-key"]); } catch (e) {}
+        ws.send(JSON.stringify({ type: "request", id: "req", uri: uri, payload: {} }));
+      } else if (msg.id === "reg" && msg.type === "error") {
+        try { localStorage.removeItem(SSAP_KEY); } catch (e) {}
+        finish(false, "not approved");
+      } else if (msg.id === "req") {
+        finish(msg.type === "response" && !(msg.payload && msg.payload.returnValue === false), msg.type);
+      }
+    };
+  }
+  // Fire once per idle stretch, only while OmarchyTV is on screen and TV control is approved (an
+  // unattended night-time approval prompt would help nobody). Any input re-arms it.
+  var offSent = false;
+  setInterval(function () {
+    if (!cfg.offIdleMin || document.hidden || Date.now() - lastInput < cfg.offIdleMin * 60000) { offSent = false; return; }
+    if (offSent || !tvControlApproved()) return;
+    offSent = true;
+    ssapRequest(cfg.offMode === "tv" ? "ssap://system/turnOff" : "ssap://com.webos.service.tvpower/power/turnOffScreen");
+  }, 5000);
 
   function launchApp(app) {
     if (!app) return;
