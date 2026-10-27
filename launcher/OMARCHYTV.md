@@ -53,6 +53,12 @@ tools/venv/bin/python -I tools/b64push.py omarchytv.json /sdcard/Android/data/co
 `wallpaper` may also be an absolute path to an image on the TV (decoded subsampled to screen size).
 See [PLUGINS.md](PLUGINS.md) for the widget list.
 
+### Weather in the bar
+
+`"barWeather": true` shows the current weather as a line icon and the temperature in the bar, left of the
+status icons (same data and location as the weather widget). Combine with `"homeWidgets": {"weather": false}`
+to keep only the bar version.
+
 ## Screensaver
 
 `OmarchyDream` re-creates Omarchy's screensaver (`bin/omarchy-screensaver` loops

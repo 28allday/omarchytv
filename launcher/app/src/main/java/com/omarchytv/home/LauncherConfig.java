@@ -189,6 +189,9 @@ final class LauncherConfig {
     /** "> tv" section with the single Live TV tile (omarchytv.json "tv": {"enabled": true}). */
     final boolean tvEnabled;
 
+    /** omarchytv.json "barWeather": true puts icon + temperature in the bar, left of the status icons (default off). */
+    final boolean barWeather;
+
     /**
      * AI-pane sources the PC can mirror (omarchytv.json "aiSources", pushed with PUT /v1/ai). Present only when
      * the PC accepts the "ai_sources" event; the TV then shows one switch per source. Ids are whatever the PC sends.
@@ -460,6 +463,7 @@ final class LauncherConfig {
         voiceKey = j != null && "assistant".equals(j.optString("voiceKey")) ? "assistant" : "launcher";
         JSONObject tv = j != null ? j.optJSONObject("tv") : null;
         tvEnabled = tv == null || tv.optBoolean("enabled", true);
+        barWeather = j != null && j.optBoolean("barWeather", false);
         JSONObject wx = j != null ? j.optJSONObject("weather") : null;
         weatherLat = wx != null ? wx.optDouble("lat", Double.NaN) : Double.NaN;
         weatherLon = wx != null ? wx.optDouble("lon", Double.NaN) : Double.NaN;
