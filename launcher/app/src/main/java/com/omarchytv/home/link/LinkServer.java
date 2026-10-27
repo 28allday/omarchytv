@@ -629,7 +629,7 @@ public final class LinkServer {
             return new Response(200, o);
         }
         if ("POST".equals(req.method) && ("/v1/pair/start".equals(path) || "/v1/pair/confirm".equals(path))) {
-            long retry = limited(req.peer + "|pair", 1, 2000);
+            long retry = limited(req.peer + "|" + path, 1, 2000);
             if (retry > 0) return retryAfter(new Response(429, err("rate_limited", "1 pairing request per 2 s")), retry);
             return pair(path, req);
         }

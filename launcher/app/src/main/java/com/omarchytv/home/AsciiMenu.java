@@ -79,6 +79,8 @@ final class AsciiMenu {
     private final LinearLayout rows;
     private final Deque<Page> stack = new ArrayDeque<>();
     private final float density;
+    private View lastAnchor;
+    private boolean explicitDismiss;
 
     AsciiMenu(Activity activity, int widthDp) {
         this.activity = activity;
@@ -93,6 +95,18 @@ final class AsciiMenu {
         popup.setOutsideTouchable(true);
         popup.setAnimationStyle(0);
         popup.setOnDismissListener(() -> {
+            if (!explicitDismiss && stack.size() > 1 && lastAnchor != null
+                    && lastAnchor.getWindowToken() != null && lastAnchor.isAttachedToWindow()) {
+                // PopupDecorView intercepts KEYCODE_BACK and dismisses the PopupWindow before child views see it;
+                // pop to the parent page and re-show seamlessly when in a nested submenu.
+                leave(stack.pop());
+                Page parent = stack.pop();
+                render(parent);
+                showFitting(lastAnchor);
+                focusFirst();
+                return;
+            }
+            explicitDismiss = false;
             leave(stack.peek());
             if (dismissListener != null) dismissListener.onDismiss();
         });
@@ -144,6 +158,8 @@ final class AsciiMenu {
 
     void showBelow(View anchor, Page page) {
         if (anchor == null || anchor.getWindowToken() == null || !anchor.isAttachedToWindow()) return;   // v2.10: activity gone (emulator crash)
+        lastAnchor = anchor;
+        explicitDismiss = false;
         stack.clear();
         render(page);
         showFitting(anchor);
@@ -153,6 +169,8 @@ final class AsciiMenu {
     /** Reopens a submenu (after a live-preview rebuild) with Back still leading to its parent. */
     void showBelow(View anchor, Page parent, Page page) {
         if (anchor == null || anchor.getWindowToken() == null || !anchor.isAttachedToWindow()) return;
+        lastAnchor = anchor;
+        explicitDismiss = false;
         stack.clear();
         stack.push(parent);
         render(page);
@@ -180,6 +198,7 @@ final class AsciiMenu {
     }
 
     void dismiss() {
+        explicitDismiss = true;
         popup.dismiss();
     }
 
@@ -217,7 +236,7 @@ final class AsciiMenu {
             });
             v.setOnClickListener(x -> {
                 boolean keep = r.action != null && r.action.run(r);
-                if (!keep && stack.peek() == page && popup.isShowing()) popup.dismiss();
+                if (!keep && stack.peek() == page && popup.isShowing()) dismiss();
             });
             v.setOnKeyListener((x, keyCode, e) -> {
                 if (keyCode != KeyEvent.KEYCODE_BACK || stack.size() <= 1) return false;

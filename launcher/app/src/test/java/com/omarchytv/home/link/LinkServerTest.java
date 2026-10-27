@@ -99,7 +99,7 @@ public class LinkServerTest {
         JSONObject s = start.json();
         tvId = s.getString("tvId");
         LinkCrypto.Keys k = a.finish(tvId, LinkCrypto.unb64u(s.getString("s")));
-        Thread.sleep(2100);   // pair/* is limited to 1 per 2 s per peer
+        // pair/start and pair/confirm have separate 1 req / 2 s buckets so confirm succeeds immediately
         Resp done = post("/v1/pair/confirm", new JSONObject().put("pairingId", s.getString("pairingId"))
                 .put("confirm", LinkCrypto.b64u(k.confirmPc)).toString());
         if (done.status == 200) {
