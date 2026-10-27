@@ -1032,4 +1032,14 @@
   renderAll();
   fetchWeather();
   pollPcStatus();
+
+  // Keep the PC panels live: refresh /v1/status every 5 s while the app is on screen. A request that
+  // gets no answer (e.g. a firewall dropping packets) can hang for a long time, so skip ticks while one
+  // is still pending instead of piling them up.
+  var pcPollPending = false;
+  setInterval(function () {
+    if (pcPollPending || document.hidden) return;
+    pcPollPending = true;
+    pollPcStatus().then(function () { pcPollPending = false; }, function () { pcPollPending = false; });
+  }, 5000);
 })();
