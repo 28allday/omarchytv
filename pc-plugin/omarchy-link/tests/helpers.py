@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TMP = Path(tempfile.mkdtemp(prefix="omarchy-link-test-"))
+# resolve(): on macOS the temp dir is /var/..., a symlink to /private/var/..., and the code under test sees the real path.
+TMP = Path(tempfile.mkdtemp(prefix="omarchy-link-test-")).resolve()
 HOME = TMP / "home"
 os.environ.update(HOME=str(HOME), XDG_RUNTIME_DIR=str(TMP / "run"), XDG_CONFIG_HOME=str(HOME / ".config"),
                   XDG_STATE_HOME=str(HOME / ".local/state"), XDG_CACHE_HOME=str(HOME / ".cache"))
@@ -17,9 +18,23 @@ os.environ.pop("OMARCHY_LINK_MDNS", None)
 # every later test. Tests that want a CLI put a stub on PATH themselves.
 AI_CLIS = ("claude", "codex", "gemini", "grok", "ollama", "omarchy-agent-usage-update", "claudebar", "ai-usagebar",
            "catt", "wf-recorder", "gpu-screen-recorder", "wl-paste", "xclip", "notify-send", "omarchy-notification-send")
+
+
+def _hide_clis(d: str, n: int) -> str:
+    """d itself, or (when it holds one of AI_CLIS) a copy of it made of symlinks to everything else. Dropping
+    the whole dir would also hide what shares it, e.g. ffmpeg next to claude in Homebrew's /opt/homebrew/bin."""
+    if not any(os.access(os.path.join(d, c), os.X_OK) for c in AI_CLIS):
+        return d
+    shadow = TMP / "path" / str(n)
+    shadow.mkdir(parents=True)
+    for name in os.listdir(d):
+        if name not in AI_CLIS:
+            (shadow / name).symlink_to(os.path.join(d, name))
+    return str(shadow)
+
+
 os.environ["PATH"] = os.pathsep.join(
-    d for d in os.environ.get("PATH", "/usr/bin:/bin").split(os.pathsep)
-    if d and not any(os.access(os.path.join(d, c), os.X_OK) for c in AI_CLIS))
+    _hide_clis(d, n) for n, d in enumerate(os.environ.get("PATH", "/usr/bin:/bin").split(os.pathsep)) if d)
 for k in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY", "GROK_DEPLOYMENT_KEY", "GEMINI_API_KEY",
           "GOOGLE_API_KEY", "GOOGLE_GENAI_USE_VERTEXAI", "CLAUDE_CONFIG_DIR", "CODEX_HOME", "OLLAMA_HOST",
           "OPENROUTER_API_KEY", "DEEPSEEK_API_KEY"):

@@ -61,7 +61,7 @@ class Context:
             if not path.is_file():
                 raise ProviderError(f"{what}: key file {path} not found")
             if not config.is_private_file(path):
-                raise ProviderError(f"{what}: key file {path} must be chmod 600")
+                raise ProviderError(f"{what}: key file must be chmod 600: {path}")  # path last: errors are cut at 120 chars
             val = path.read_text().strip()
         elif ref.startswith("cmd:"):
             argv = [os.path.expanduser(a) for a in shlex.split(ref[4:])]
