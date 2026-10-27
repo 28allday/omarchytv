@@ -780,6 +780,26 @@
     if (Date.now() - lastInput >= cfg.saverIdleMin * 60000) startScreensaver();
   }, 5000);
 
+  // Keep LG's own screensaver from covering OmarchyTV's. The tvpower service asks registered clients
+  // before it starts its screensaver and asks again every few minutes: ack:false vetoes, ack:true lets it
+  // run. Veto only while we are on screen and our screensaver is enabled; in the background (HDMI, Live
+  // TV, other apps) or with ours set to "never", LG's burn-in protection still runs. Same handshake as
+  // Kodi on webOS (xbmc/windowing/wayland/OSScreenSaverWebOS.cpp). window.webOS is not loaded here,
+  // so this uses PalmServiceBridge directly.
+  if (window.PalmServiceBridge) {
+    var lgSaverSub = new PalmServiceBridge(); // kept in scope so the subscription stays alive
+    lgSaverSub.onservicecallback = function (msg) {
+      var req;
+      try { req = JSON.parse(msg); } catch (e) { return; }
+      if (req.state !== "Active") return;
+      var allow = document.hidden || !cfg.saverIdleMin;
+      new PalmServiceBridge().call("luna://com.webos.service.tvpower/power/responseScreenSaverRequest",
+        JSON.stringify({ clientName: "com.omarchytv.home", ack: allow, timestamp: req.timestamp }));
+    };
+    lgSaverSub.call("luna://com.webos.service.tvpower/power/registerScreenSaverRequest",
+      JSON.stringify({ subscribe: true, clientName: "com.omarchytv.home" }));
+  }
+
   function showToast(msg) {
     var t = document.getElementById("toast");
     t.textContent = msg;
