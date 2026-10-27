@@ -203,6 +203,19 @@ public class LinkServerTest {
     }
 
     @Test
+    public void cleanPanesKeepsKnownTonesOnly() throws Exception {
+        org.json.JSONArray in = new org.json.JSONArray("[{\"id\":\"rates\",\"lines\":[{\"label\":\"US 10Y\",\"value\":\"4.99%\",\"tone\":\"up\"},"
+                + "{\"label\":\"WTI\",\"value\":\"$100\",\"tone\":\"down\"},{\"label\":\"x\",\"value\":\"y\",\"tone\":\"<b>\"}]}]");
+        String[] why = new String[2];
+        org.json.JSONArray l = LinkServer.cleanPanes(in, System.currentTimeMillis() / 1000, why).getJSONObject(0).getJSONArray("lines");
+        assertEquals("up", l.getJSONObject(0).getString("tone"));
+        assertEquals("down", l.getJSONObject(1).getString("tone"));
+        assertFalse(l.getJSONObject(2).has("tone"));
+        assertEquals(null, LinkServer.cleanPanes(new org.json.JSONArray("[{\"id\":\"Bad Id\"}]"), 0, why));
+        assertEquals("bad_widgets", why[0]);
+    }
+
+    @Test
     public void customBanners() throws Exception {
         pair("123456");
         byte[] png = {(byte) 0x89, 'P', 'N', 'G', 13, 10, 26, 10, 0, 0};
