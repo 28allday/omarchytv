@@ -3,5 +3,7 @@
 # theme to the paired OmarchyTV in the background. Never fails the theme switch.
 root="@OMARCHY_LINK_ROOT@"
 [[ -x $root/bin/omarchy-link ]] || exit 0
-setsid "$root/bin/omarchy-link" sync-theme --quiet </dev/null >/dev/null 2>&1 &
+# setsid is util-linux; macOS has none, so fall back to a plain background job there.
+detach=(); command -v setsid >/dev/null && detach=(setsid)
+"${detach[@]}" "$root/bin/omarchy-link" sync-theme --quiet </dev/null >/dev/null 2>&1 &
 exit 0
