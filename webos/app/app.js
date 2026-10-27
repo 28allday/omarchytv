@@ -78,10 +78,13 @@
     saverIdleMin: 2.5,
     saverLogoScale: 0.65,
     saverShowClock: false,
+    offIdleMin: 0,
+    offMode: "screen",
     promptUser: "user",
     promptHost: "omarchytv",
     pcHost: "",
     pcSimulated: false,
+    aiCredits: "percent",
     widgets: { term: true, weather: true, pc: true, ai: true, deploy: false },
     hiddenApps: []
   };
@@ -299,6 +302,36 @@
     return Math.round(c) + "°";
   }
 
+  function formatAiPane(s) {
+    if (!Array.isArray(s.ai)) {
+      return "Claude   $" + (s.claude || "18.40") + " left\nOpenAI   $" + (s.openai || "42.10") + " left\nxAI Grok $" + (s.xai || "95.00") + " left";
+    }
+    var mode = cfg.aiCredits === "dollars" ? "dollars" : "percent";
+    var rows = s.ai;
+    var seen = {};
+    var out = [];
+    if (mode === "percent") {
+      rows.forEach(function (e) {
+        var key = e.id || e.name;
+        if (!key || seen[key]) return;
+        var err = String(e.error || "").toLowerCase();
+        if (e.status === "error" || err.indexOf("waiting for auth") >= 0 || err.indexOf("unavailable") >= 0) return;
+        var line = e.plan || (e.used != null ? Math.round(e.used) + "% used" : "");
+        if (!line) return;
+        seen[key] = 1;
+        var label = e.plan ? String(e.name || key).split(" ")[0] : (e.name || key);
+        out.push(label + "  " + line);
+      });
+      return out.length ? out.join("\n") : "No subscription meter";
+    }
+    rows = rows.filter(function (e) { return e.unit && e.unit !== "%" && e.unit !== "tokens"; });
+    if (!rows.length) return "No dollar balances";
+    return rows.map(function (e) {
+      var rem = e.remaining != null ? e.remaining : (e.limit != null && e.used != null ? Math.round((e.limit - e.used) * 100) / 100 : null);
+      return (e.name || "balance") + "  $" + (rem != null ? rem : "?") + " left";
+    }).join("\n");
+  }
+
   function renderWidgets() {
     document.getElementById("legend-wx").textContent = tr("box_weather");
     document.getElementById("legend-pc").textContent = tr("box_pc");
@@ -326,7 +359,7 @@
       pcBody.style.color = "var(--t-fg)";
       pcBody.textContent = (s.host || "omarchy-pc") + " · " + (s.kernel || "Arch Linux") + "\nCPU " + s.cpu + "%  [████░░░░░░]\nRAM " + s.ram + "%  [██████░░░░]";
       aiBody.style.color = "var(--t-fg)";
-      aiBody.textContent = "Claude   $" + (s.claude || "18.40") + " left\nOpenAI   $" + (s.openai || "42.10") + " left\nxAI Grok $" + (s.xai || "95.00") + " left";
+      aiBody.textContent = formatAiPane(s);
       if (ws4Live) {
         ws4Live.textContent = "Connected to " + (s.host || "omarchy-pc") + " (" + (cfg.pcHost || "simulated LAN link") + ")\nCPU: " + s.cpu + "% · RAM: " + s.ram + "% · GPU: " + (s.gpu || "18%") + "\nDeploys: " + (s.deploy || "omarchytv-webos 2.11.0-testing ✓");
       }
@@ -657,18 +690,37 @@
     ]);
   }
 
-  function openSaverModal() {
+  function openSaverModal(keepFocus) {
+    var focus = state.modalIdx;
     openModal(tr("sys_saver"), "37 tte.js TerminalTextEffects over screensaver-tv.txt", [
       { label: "Preview screensaver now", right: "▶", act: function () { closeModal(); startScreensaver(); } },
       { label: tr("sys_saver_idle"), right: cfg.saverIdleMin === 0 ? "never" : (cfg.saverIdleMin + " min"), act: function () {
         var opts = [1, 2.5, 5, 10, 0];
         cfg.saverIdleMin = opts[(opts.indexOf(cfg.saverIdleMin) + 1) % opts.length];
-        saveCfg(); openSaverModal();
+        saveCfg(); openSaverModal(true);
       } },
       { label: "Clock under logo", right: cfg.saverShowClock ? "on" : "off", act: function () {
-        cfg.saverShowClock = !cfg.saverShowClock; saveCfg(); openSaverModal();
+        cfg.saverShowClock = !cfg.saverShowClock; saveCfg(); openSaverModal(true);
+      } },
+      { label: "Turn off after idle", right: cfg.offIdleMin ? cfg.offIdleMin + " min" : "never", act: function () {
+        var opts = [0, 5, 15, 30, 60, 120];
+        cfg.offIdleMin = opts[(opts.indexOf(cfg.offIdleMin) + 1) % opts.length];
+        saveCfg(); openSaverModal(true);
+      } },
+      { label: "Turn off", right: cfg.offMode === "tv" ? "TV" : "screen only", act: function () {
+        cfg.offMode = cfg.offMode === "tv" ? "screen" : "tv";
+        saveCfg(); openSaverModal(true);
+      } },
+      { label: "TV control", right: tvControlApproved() ? "approved" : "needs approval", act: function () {
+        showToast("Checking TV control… accept the prompt on screen if it appears");
+        ssapRequest("ssap://com.webos.service.tvpower/power/getPowerState", function (ok, info) {
+          showToast(ok ? "TV control approved" : "TV control not available (" + info + ")");
+          if (state.modalOpen) openSaverModal(true);
+        });
       } }
     ]);
+    // Toggling an item re-opens the menu; keep the cursor on it instead of jumping to the top.
+    if (keepFocus) { state.modalIdx = Math.min(focus, state.modalItems.length - 1); renderModalList(); }
   }
 
   function openAllSettingsModal() {
@@ -730,6 +782,14 @@
       { label: tr("wx_title"), right: "°" + cfg.tempUnit, act: openWeatherModal },
       { label: tr("sys_saver"), right: "›", act: openSaverModal },
       { label: tr("sys_all"), right: "›", act: openAllSettingsModal },
+      { label: "AI meter", right: cfg.aiCredits === "dollars" ? "dollars" : "percent", act: function () {
+        cfg.aiCredits = cfg.aiCredits === "dollars" ? "percent" : "dollars";
+        saveCfg();
+        renderWidgets();
+        var row = state.modalItems[state.modalIdx];
+        if (row) row.right = cfg.aiCredits === "dollars" ? "dollars" : "percent";
+        renderModalList();
+      } },
       { label: tr("sys_about"), right: "2.11.0-testing", act: openAboutModal }
     ]);
   }
@@ -762,6 +822,42 @@
       fr.src = "about:blank";
       animateLogo();
     }
+    // Keys pressed inside the saver iframe never reach this document, so restart the idle clock here.
+    markInput();
+  }
+
+  // Idle timer: start the screensaver after cfg.saverIdleMin minutes without input (0 = never),
+  // only while OmarchyTV is on screen and no menu is open.
+  var lastInput = Date.now();
+  function markInput() { lastInput = Date.now(); }
+  ["keydown", "mousemove", "mousedown", "wheel", "touchstart"].forEach(function (t) {
+    document.addEventListener(t, markInput, true);
+  });
+  document.addEventListener("visibilitychange", markInput);
+  setInterval(function () {
+    if (!cfg.saverIdleMin || document.hidden || state.modalOpen) return;
+    if (document.getElementById("saver-overlay").className === "active") return;
+    if (Date.now() - lastInput >= cfg.saverIdleMin * 60000) startScreensaver();
+  }, 5000);
+
+  // Keep LG's own screensaver from covering OmarchyTV's. The tvpower service asks registered clients
+  // before it starts its screensaver and asks again every few minutes: ack:false vetoes, ack:true lets it
+  // run. Veto only while we are on screen and our screensaver is enabled; in the background (HDMI, Live
+  // TV, other apps) or with ours set to "never", LG's burn-in protection still runs. Same handshake as
+  // Kodi on webOS (xbmc/windowing/wayland/OSScreenSaverWebOS.cpp). window.webOS is not loaded here,
+  // so this uses PalmServiceBridge directly.
+  if (window.PalmServiceBridge) {
+    var lgSaverSub = new PalmServiceBridge(); // kept in scope so the subscription stays alive
+    lgSaverSub.onservicecallback = function (msg) {
+      var req;
+      try { req = JSON.parse(msg); } catch (e) { return; }
+      if (req.state !== "Active") return;
+      var allow = document.hidden || !cfg.saverIdleMin;
+      new PalmServiceBridge().call("luna://com.webos.service.tvpower/power/responseScreenSaverRequest",
+        JSON.stringify({ clientName: "com.omarchytv.home", ack: allow, timestamp: req.timestamp }));
+    };
+    lgSaverSub.call("luna://com.webos.service.tvpower/power/registerScreenSaverRequest",
+      JSON.stringify({ subscribe: true, clientName: "com.omarchytv.home" }));
   }
 
   function showToast(msg) {
@@ -771,6 +867,53 @@
     clearTimeout(t._timer);
     t._timer = setTimeout(function () { t.style.display = "none"; }, 2600);
   }
+
+  // Turn off after idle. Apps may not call tvpower's turnOffScreen directly ("Denied method call"), but
+  // the TV's own remote-control API (SSAP on ws://127.0.0.1:3000, used by LG's phone app and Home
+  // Assistant) allows it once the user approves this app in an on-screen prompt. The client key from
+  // that approval is kept in localStorage.
+  var SSAP_KEY = "omarchytv_ssap_key";
+  function tvControlApproved() {
+    try { return !!localStorage.getItem(SSAP_KEY); } catch (e) { return false; }
+  }
+  function ssapRequest(uri, done) {
+    var ws, finished = false, timer;
+    function finish(ok, info) {
+      if (finished) return;
+      finished = true; clearTimeout(timer);
+      try { ws.close(); } catch (e) {}
+      if (done) done(ok, info);
+    }
+    try { ws = new WebSocket("ws://127.0.0.1:3000"); } catch (e) { return finish(false, "unavailable"); }
+    timer = setTimeout(function () { finish(false, "no answer"); }, 90000); // time to accept a prompt
+    var payload = { forcePairing: false, pairingType: "PROMPT", manifest: { appVersion: "1.0", manifestVersion: 1,
+      permissions: ["CONTROL_POWER", "CONTROL_TV_SCREEN", "READ_POWER_STATE"] } };
+    try { var key = localStorage.getItem(SSAP_KEY); if (key) payload["client-key"] = key; } catch (e) {}
+    ws.onerror = function () { finish(false, "unavailable"); };
+    ws.onopen = function () { ws.send(JSON.stringify({ type: "register", id: "reg", payload: payload })); };
+    ws.onmessage = function (m) {
+      var msg;
+      try { msg = JSON.parse(m.data); } catch (e) { return; }
+      if (msg.id === "reg" && msg.type === "registered") {
+        try { localStorage.setItem(SSAP_KEY, msg.payload["client-key"]); } catch (e) {}
+        ws.send(JSON.stringify({ type: "request", id: "req", uri: uri, payload: {} }));
+      } else if (msg.id === "reg" && msg.type === "error") {
+        try { localStorage.removeItem(SSAP_KEY); } catch (e) {}
+        finish(false, "not approved");
+      } else if (msg.id === "req") {
+        finish(msg.type === "response" && !(msg.payload && msg.payload.returnValue === false), msg.type);
+      }
+    };
+  }
+  // Fire once per idle stretch, only while OmarchyTV is on screen and TV control is approved (an
+  // unattended night-time approval prompt would help nobody). Any input re-arms it.
+  var offSent = false;
+  setInterval(function () {
+    if (!cfg.offIdleMin || document.hidden || Date.now() - lastInput < cfg.offIdleMin * 60000) { offSent = false; return; }
+    if (offSent || !tvControlApproved()) return;
+    offSent = true;
+    ssapRequest(cfg.offMode === "tv" ? "ssap://system/turnOff" : "ssap://com.webos.service.tvpower/power/turnOffScreen");
+  }, 5000);
 
   function launchApp(app) {
     if (!app) return;
@@ -845,7 +988,11 @@
     }
 
     if (isBack) {
-      if (state.ws !== 0) { switchWorkspace(0); e.preventDefault(); }
+      // webOS hides the app when Back (461) is not cancelled. The Home key still leaves.
+      // Back from another workspace returns to the dock; Back on the dock stays in the app.
+      if (state.ws !== 0) switchWorkspace(0);
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
 
@@ -973,4 +1120,14 @@
   renderAll();
   fetchWeather();
   pollPcStatus();
+
+  // Keep the PC panels live: refresh /v1/status every 5 s while the app is on screen. A request that
+  // gets no answer (e.g. a firewall dropping packets) can hang for a long time, so skip ticks while one
+  // is still pending instead of piling them up.
+  var pcPollPending = false;
+  setInterval(function () {
+    if (pcPollPending || document.hidden) return;
+    pcPollPending = true;
+    pollPcStatus().then(function () { pcPollPending = false; }, function () { pcPollPending = false; });
+  }, 5000);
 })();
