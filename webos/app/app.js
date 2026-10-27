@@ -762,7 +762,23 @@
       fr.src = "about:blank";
       animateLogo();
     }
+    // Keys pressed inside the saver iframe never reach this document, so restart the idle clock here.
+    markInput();
   }
+
+  // Idle timer: start the screensaver after cfg.saverIdleMin minutes without input (0 = never),
+  // only while OmarchyTV is on screen and no menu is open.
+  var lastInput = Date.now();
+  function markInput() { lastInput = Date.now(); }
+  ["keydown", "mousemove", "mousedown", "wheel", "touchstart"].forEach(function (t) {
+    document.addEventListener(t, markInput, true);
+  });
+  document.addEventListener("visibilitychange", markInput);
+  setInterval(function () {
+    if (!cfg.saverIdleMin || document.hidden || state.modalOpen) return;
+    if (document.getElementById("saver-overlay").className === "active") return;
+    if (Date.now() - lastInput >= cfg.saverIdleMin * 60000) startScreensaver();
+  }, 5000);
 
   function showToast(msg) {
     var t = document.getElementById("toast");
