@@ -59,6 +59,7 @@ final class Walker extends FrameLayout {
     private final List<Item> all;
     private final List<Item> shown = new ArrayList<>();
     private int sel;
+    private boolean centerDown;
 
     Walker(Activity a, float s, List<Item> items, Host host) {
         super(a);
@@ -138,6 +139,7 @@ final class Walker extends FrameLayout {
     }
 
     void focus() {
+        centerDown = false;
         field.requestFocus();
     }
 
@@ -243,7 +245,12 @@ final class Walker extends FrameLayout {
             case KeyEvent.KEYCODE_DPAD_CENTER:
             case KeyEvent.KEYCODE_ENTER:
             case KeyEvent.KEYCODE_NUMPAD_ENTER:
-                if (!down) openSelected();
+                if (down) {
+                    if (e.getRepeatCount() == 0) centerDown = true;
+                } else if (centerDown) {
+                    centerDown = false;
+                    if (!e.isCanceled()) openSelected();
+                }
                 return true;
             case KeyEvent.KEYCODE_BACK:
             case KeyEvent.KEYCODE_ESCAPE:

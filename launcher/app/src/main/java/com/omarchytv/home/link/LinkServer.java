@@ -1324,27 +1324,9 @@ public final class LinkServer {
         if (panesIn == null) panesIn = new JSONArray();
         if (scIn == null) scIn = new JSONArray();
         if (panesIn.length() > 8 || scIn.length() > 16) return new Response(400, err("too_many", "8 panes, 16 shortcuts"));
-        JSONArray panes = new JSONArray();
-        for (int i = 0; i < panesIn.length(); i++) {
-            JSONObject p = panesIn.optJSONObject(i);
-            if (p == null || !WIDGET_ID.matcher(p.optString("id", "")).matches()) return new Response(400, err("bad_widgets", "pane id"));
-            JSONArray lines = p.optJSONArray("lines");
-            if (lines != null && lines.length() > 8) return new Response(400, err("too_many", "8 lines per pane"));
-            JSONArray outLines = new JSONArray();
-            for (int k = 0; lines != null && k < lines.length(); k++) {
-                JSONObject l = lines.optJSONObject(k);
-                if (l == null) continue;
-                outLines.put(new JSONObject().put("label", printable(l.optString("label", ""), 16))
-                        .put("value", printable(l.optString("value", ""), 64)));
-            }
-            int ttl = p.optInt("ttl", 180);
-            JSONObject pane = new JSONObject().put("id", p.getString("id")).put("title", printable(p.optString("title", p.getString("id")), 48))
-                    .put("icon", printable(p.optString("icon", ""), 16)).put("ttl", Math.max(10, Math.min(86_400, ttl))).put("lines", outLines);
-            // Optional "at" (unix seconds): when these live stats were taken; absent = the push time (widgetsAt).
-            long paneAt = p.optLong("at", 0L);
-            if (paneAt > 0 && paneAt <= now() + 300) pane.put("at", paneAt);
-            panes.put(pane);
-        }
+        String[] why = new String[2];
+        JSONArray panes = cleanPanes(panesIn, now(), why);
+        if (panes == null) return new Response(400, err(why[0], why[1]));
         JSONArray shortcuts = new JSONArray();
         for (int i = 0; i < scIn.length(); i++) {
             JSONObject s = scIn.optJSONObject(i);
@@ -1362,6 +1344,54 @@ public final class LinkServer {
             link.put("panes", panes).put("shortcuts", shortcuts).put("widgetsAt", at);
         });
         return new Response(200, ok());
+    }
+
+    static final Set<String> LINE_TONES = new HashSet<>(Arrays.asList("up", "down"));
+
+    /**
+     * The panes of PUT /v1/widgets, checked and cleaned (text only, PROTOCOL.md limits). Also used for the panes
+     * the TV fetches itself (omarchytv.json "remotePanes"). Returns null with {code, message} in {@code why}.
+     */
+    public static JSONArray cleanPanes(JSONArray panesIn, long nowSec, String[] why) throws JSONException {
+        if (panesIn.length() > 8) {
+            why[0] = "too_many";
+            why[1] = "8 panes";
+            return null;
+        }
+        JSONArray panes = new JSONArray();
+        for (int i = 0; i < panesIn.length(); i++) {
+            JSONObject p = panesIn.optJSONObject(i);
+            if (p == null || !WIDGET_ID.matcher(p.optString("id", "")).matches()) {
+                why[0] = "bad_widgets";
+                why[1] = "pane id";
+                return null;
+            }
+            JSONArray lines = p.optJSONArray("lines");
+            if (lines != null && lines.length() > 8) {
+                why[0] = "too_many";
+                why[1] = "8 lines per pane";
+                return null;
+            }
+            JSONArray outLines = new JSONArray();
+            for (int k = 0; lines != null && k < lines.length(); k++) {
+                JSONObject l = lines.optJSONObject(k);
+                if (l == null) continue;
+                JSONObject line = new JSONObject().put("label", printable(l.optString("label", ""), 16))
+                        .put("value", printable(l.optString("value", ""), 64));
+                // Optional "tone": "up" | "down" colours the value (e.g. a price change); anything else is dropped.
+                String tone = l.optString("tone", "");
+                if (LINE_TONES.contains(tone)) line.put("tone", tone);
+                outLines.put(line);
+            }
+            int ttl = p.optInt("ttl", 180);
+            JSONObject pane = new JSONObject().put("id", p.getString("id")).put("title", printable(p.optString("title", p.getString("id")), 48))
+                    .put("icon", printable(p.optString("icon", ""), 16)).put("ttl", Math.max(10, Math.min(86_400, ttl))).put("lines", outLines);
+            // Optional "at" (unix seconds): when these live stats were taken; absent = the push time (widgetsAt).
+            long paneAt = p.optLong("at", 0L);
+            if (paneAt > 0 && paneAt <= nowSec + 300) pane.put("at", paneAt);
+            panes.put(pane);
+        }
+        return panes;
     }
 
     /** Last PUT /v1/stats (home "omarchy · pc" / "deploys · pc"), in memory only: gone with the process. */
