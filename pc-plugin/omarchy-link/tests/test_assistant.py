@@ -222,7 +222,15 @@ class AssistantUnit(Base):
         self.assertEqual(a.ask("hi", provider="ollama")["text"], "Local llama")
 
     def test_hermes_and_grok_bot_providers(self):
-        _write_bin("hermes", "#!/usr/bin/env python3\nimport json, sys\nassert '-p' in sys.argv\nprint(json.dumps({'result': 'Hermes says hi'}))\n")
+        _write_bin("hermes", (
+            "#!/usr/bin/env python3\nimport sys\n"
+            "a = sys.argv[1:]\n"
+            "assert a[:2] == ['chat', '-q'] and '--oneshot' in a and '--quiet' in a, a\n"
+            "model = a[a.index('-m') + 1] if '-m' in a else ''\n"
+            "print('Hermes says hi' + (' (' + model + ')' if model else ''))\n"
+            "print()\n"
+            "print('session_id: 20261028_abc123')\n"
+        ))
         _write_bin("grok-bot", "#!/usr/bin/env python3\nimport json, sys\nassert '-p' in sys.argv\nprint(json.dumps({'result': 'Grok Bot says hi'}))\n")
         (helpers.HOME / ".hermes").mkdir(parents=True, exist_ok=True)
         (helpers.HOME / ".hermes/auth.json").write_text("{}")
@@ -234,8 +242,20 @@ class AssistantUnit(Base):
         ids = [p["id"] for p in a.listing()["providers"]]
         self.assertIn("hermes-cli", ids)
         self.assertIn("grok-bot", ids)
-        self.assertEqual(a.ask("hi", provider="hermes-cli")["text"], "Hermes says hi")
+        res = a.ask("hi", provider="hermes-cli")
+        self.assertEqual(res["text"], "Hermes says hi")
+        self.assertNotIn("session_id", res["text"])
         self.assertEqual(a.ask("hi", provider="grok-bot")["text"], "Grok Bot says hi")
+        # Non-streaming CLI providers also print their final text in `omarchy-link ai ask`
+        out = cli("ai", "ask", "--provider", "hermes-cli", "hi").stdout
+        self.assertIn("Hermes says hi", out)
+        self.assertNotIn("session_id", out)
+        self.assertIn("[hermes-cli]", out)
+        # Streaming providers print deltas once without duplicating final text
+        self.signed_in_clis()
+        clis.clear_cache()
+        out_stream = cli("ai", "ask", "--provider", "claude-code", "hello").stdout
+        self.assertEqual(out_stream.count("You asked: hello"), 1)
 
     def test_plain_http_only_on_lan(self):
         assistant.check_url("https://api.x.ai/v1")
