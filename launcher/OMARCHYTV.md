@@ -77,6 +77,12 @@ Rules: `https://` only, no redirects, at most 64 KiB, fetched on a background th
 cached in the app's files dir; a pane dims after `ttl` and hides after 2 × `ttl` (counted from its `at`,
 else from the fetch), so a dead source never shows old numbers as current. No url (default) = off.
 
+### Weather in the bar
+
+`"barWeather": true` shows the current weather as a line icon and the temperature in the bar, left of the
+status icons (same data and location as the weather widget). Combine with `"homeWidgets": {"weather": false}`
+to keep only the bar version.
+
 ## Screensaver
 
 `OmarchyDream` re-creates Omarchy's screensaver (`bin/omarchy-screensaver` loops

@@ -189,6 +189,9 @@ final class LauncherConfig {
     /** "> tv" section with the single Live TV tile (omarchytv.json "tv": {"enabled": true}). */
     final boolean tvEnabled;
 
+    /** omarchytv.json "barWeather": true puts icon + temperature in the bar, left of the status icons (default off). */
+    final boolean barWeather;
+
     /**
      * Panes the TV fetches itself (omarchytv.json "remotePanes": {"url": "https://…", "refreshSec": 300}): same
      * body as PUT /v1/widgets, panes only. Empty url (default) = off. See {@link RemotePanes}.
@@ -471,6 +474,7 @@ final class LauncherConfig {
         String rpUrl = rp != null ? rp.optString("url", "").trim() : "";
         remotePanesUrl = rpUrl.startsWith("https://") && rpUrl.length() <= 512 ? rpUrl : "";
         remotePanesRefreshSec = rp != null ? (int) clamp(rp.optInt("refreshSec", 300), 300, 86_400) : 300;
+        barWeather = j != null && j.optBoolean("barWeather", false);
         JSONObject wx = j != null ? j.optJSONObject("weather") : null;
         weatherLat = wx != null ? wx.optDouble("lat", Double.NaN) : Double.NaN;
         weatherLon = wx != null ? wx.optDouble("lon", Double.NaN) : Double.NaN;

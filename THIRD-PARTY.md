@@ -49,6 +49,7 @@ Any of them can be re-added once the author confirms a redistributable licence; 
 | tte.js (`assets/saver/tte-js/`) | Flavio Copes | https://github.com/flaviocopes/tte-js @ 9b120c2 | MIT, `tte-js/LICENSE` + `THIRD_PARTY_NOTICES.md` | Unmodified. Wrapper `saver/index.html` (polyfills, diagnostics) is original. |
 | TerminalTextEffects (37 effect designs adapted by tte.js) | ChrisBuilds | https://github.com/ChrisBuilds/terminaltexteffects | MIT, `licenses/terminaltexteffects-MIT.txt` | none by us. |
 | Native fallback screensaver (`TteSaver`, `OmarchyDream`) | OmarchyTV | — | MIT (this repo) | Original; re-creates the idea, no code copied. |
+| Weather bar icons (`res/drawable/ln_wx_*.xml`: sun, cloud-sun, cloud, cloud-rain, cloud-snow, cloud-lightning, cloud-fog) | Lucide contributors | https://github.com/lucide-icons/lucide | ISC (Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT); all other copyright (c) for Lucide are held by Lucide Contributors 2022) | SVG paths converted to Android vector drawables (circles as arcs, absolute subpaths). |
 
 ## 4. Fonts
 | Item | Author | Source | Licence | Modifications |

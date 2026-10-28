@@ -110,6 +110,10 @@ final class HomeV29 extends FrameLayout {
     private final LinearLayout remoteRow;
     private final BoxView[] remoteBox = new BoxView[3];
     private final LinearLayout[] remoteBody = new LinearLayout[3];
+    /** "barWeather": icon + temperature in the bar, left of the status icons. */
+    private final LinearLayout barWx;
+    private final ImageView barWxIcon;
+    private final TextView barWxTemp;
     private final TextView wxTemp, wxLine1, wxLine2;
     // apps
     private final BoxView appWin;
@@ -170,6 +174,17 @@ final class HomeV29 extends FrameLayout {
         LinearLayout right = hbox();
         right.setPadding(0, 0, px(32) - px(13), 0);
         bar.addView(right, new LayoutParams(-2, -1, Gravity.END));
+        barWx = hbox();
+        barWxIcon = new ImageView(a);
+        barWx.addView(barWxIcon, new LinearLayout.LayoutParams(px(24), px(24)));
+        barWxTemp = text("", 22, false);
+        LinearLayout.LayoutParams btl = new LinearLayout.LayoutParams(-2, -2);
+        btl.leftMargin = px(8);
+        barWx.addView(barWxTemp, btl);
+        LinearLayout.LayoutParams bwl = new LinearLayout.LayoutParams(-2, -1);
+        bwl.rightMargin = px(20);
+        right.addView(barWx, bwl);
+        barWx.setVisibility(GONE);
         // v2.10: no gear (the menu is the Omarchy logo on the left).
         int[] icons = {R.drawable.ln_wifi, R.drawable.ln_bt, R.drawable.ln_vol, R.drawable.ln_input, R.drawable.ln_monitor};
         for (int ic : icons) {
@@ -633,6 +648,14 @@ final class HomeV29 extends FrameLayout {
         wxLine2.setTextColor(t.fg);
         JSONObject w = Weather.cached(act);
         JSONObject cur = w != null ? w.optJSONObject("current") : null;
+        barWx.setVisibility(cfg.barWeather && cur != null ? VISIBLE : GONE);
+        if (cfg.barWeather && cur != null) {
+            barWxIcon.setImageResource(Weather.icon(cur.optInt("weather_code")));
+            barWxIcon.setColorFilter(t.fgBright);
+            barWxTemp.setTextColor(t.fgBright);
+            barWxTemp.setText(Weather.temp(cur.optDouble("temperature_2m"), cfg.tempF) + (cfg.tempF ? "°F" : "°"));
+            barWx.setContentDescription(act.getString(Weather.describe(cur.optInt("weather_code"))));
+        }
         if (cur == null) {
             wxTemp.setText("--°");
             wxLine1.setText(Weather.where(act, cfg) == null ? act.getString(R.string.v29_wx_locating) : act.getString(R.string.weather_loading));

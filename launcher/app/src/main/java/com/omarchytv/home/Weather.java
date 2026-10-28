@@ -212,6 +212,17 @@ final class Weather {
         return R.string.wx_cloudy;
     }
 
+    /** Line icon for a WMO weather code (same buckets as {@link #describe}). */
+    static int icon(int code) {
+        if (code == 0) return R.drawable.ln_wx_sun;
+        if (code <= 2) return R.drawable.ln_wx_partly;
+        if (code == 45 || code == 48) return R.drawable.ln_wx_fog;
+        if (code >= 51 && code <= 67 || code >= 80 && code <= 82) return R.drawable.ln_wx_rain;
+        if ((code >= 71 && code <= 77) || code == 85 || code == 86) return R.drawable.ln_wx_snow;
+        if (code >= 95) return R.drawable.ln_wx_storm;
+        return R.drawable.ln_wx_cloud;
+    }
+
     private static byte[] readAll(InputStream in) throws java.io.IOException {
         ByteArrayOutputStream bo = new ByteArrayOutputStream();
         byte[] buf = new byte[8192];
