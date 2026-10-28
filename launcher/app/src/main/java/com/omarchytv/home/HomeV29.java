@@ -106,6 +106,14 @@ final class HomeV29 extends FrameLayout {
     private final LinearLayout widgets;
     private final BoxView wxBox, pcBox, depBox;
     private final LinearLayout pcBody, aiBody, depBody;
+    /** Up to 3 panes the TV fetches itself (RemotePanes), in their own row under the widgets. */
+    private final LinearLayout remoteRow;
+    private final BoxView[] remoteBox = new BoxView[3];
+    private final LinearLayout[] remoteBody = new LinearLayout[3];
+    /** "barWeather": icon + temperature in the bar, left of the status icons. */
+    private final LinearLayout barWx;
+    private final ImageView barWxIcon;
+    private final TextView barWxTemp;
     private final TextView wxTemp, wxLine1, wxLine2;
     // apps
     private final BoxView appWin;
@@ -166,6 +174,17 @@ final class HomeV29 extends FrameLayout {
         LinearLayout right = hbox();
         right.setPadding(0, 0, px(32) - px(13), 0);
         bar.addView(right, new LayoutParams(-2, -1, Gravity.END));
+        barWx = hbox();
+        barWxIcon = new ImageView(a);
+        barWx.addView(barWxIcon, new LinearLayout.LayoutParams(px(24), px(24)));
+        barWxTemp = text("", 22, false);
+        LinearLayout.LayoutParams btl = new LinearLayout.LayoutParams(-2, -2);
+        btl.leftMargin = px(8);
+        barWx.addView(barWxTemp, btl);
+        LinearLayout.LayoutParams bwl = new LinearLayout.LayoutParams(-2, -1);
+        bwl.rightMargin = px(20);
+        right.addView(barWx, bwl);
+        barWx.setVisibility(GONE);
         // v2.10: no gear (the menu is the Omarchy logo on the left).
         int[] icons = {R.drawable.ln_wifi, R.drawable.ln_bt, R.drawable.ln_vol, R.drawable.ln_input, R.drawable.ln_monitor};
         for (int ic : icons) {
@@ -252,6 +271,20 @@ final class HomeV29 extends FrameLayout {
         ai.addView(aiBody, new LinearLayout.LayoutParams(-1, -2));
         depBody = vbox();
         depBox.addView(depBody, new LinearLayout.LayoutParams(-1, -2));
+        remoteRow = hbox();
+        remoteRow.setGravity(Gravity.TOP);
+        remoteRow.setBaselineAligned(false);
+        remoteRow.setClipChildren(false);
+        LinearLayout.LayoutParams r3l = new LinearLayout.LayoutParams(-1, -2);
+        r3l.topMargin = px(16);
+        widgets.addView(remoteRow, r3l);
+        for (int i = 0; i < remoteBox.length; i++) {
+            remoteBox[i] = widget(remoteRow, "", i == 0 ? 0 : 16);
+            remoteBox[i].setFocusable(false);   // read-only data: keep the D-pad path as it was
+            remoteBody[i] = vbox();
+            remoteBox[i].addView(remoteBody[i], new LinearLayout.LayoutParams(-1, -2));
+        }
+        remoteRow.setVisibility(GONE);
         wxBox.setOnClickListener(host::weatherMenu);
         ai.setOnClickListener(host::aiMenu);
 
@@ -486,6 +519,7 @@ final class HomeV29 extends FrameLayout {
         tip.setBackgroundColor(Theme.withAlpha(t.bg, 0.98f));
         tip.setTextColor(t.fgBright);
         for (BoxView b : new BoxView[]{term, wxBox, pcBox, aiBoxRef, depBox, appWin, tvWin, appsWin, pcWin, sysWin}) b.setColors(winBg, t.muted, t.accent, t.cyan);
+        for (BoxView b : remoteBox) b.setColors(winBg, t.muted, t.accent, t.cyan);
         // v2.10: every home widget can be switched off (Settings → Widgets); the clock lives only in the bar.
         wxBox.setVisibility(c.wWeather ? VISIBLE : GONE);
         pcBox.setVisibility(c.wPc ? VISIBLE : GONE);
@@ -549,8 +583,64 @@ final class HomeV29 extends FrameLayout {
         updateWeather();
         updatePc(pcBody, depBody, depBox, cfg.wDeploys);
         updateAi(aiBody);
+        updateRemote();
         if (activeWs == 4) buildWorkspace();
     }
+
+    /** Fetched panes (RemotePanes): "label … value" rows, value green/red by tone; dim after ttl, gone after 2 x ttl. */
+    private void updateRemote() {
+        JSONObject cache = RemotePanes.cached(act, cfg.remotePanesUrl);
+        JSONArray panes = cache != null ? cache.optJSONArray("panes") : null;
+        long now = System.currentTimeMillis() / 1000L;
+        int shown = 0;
+        for (int i = 0; i < remoteBox.length; i++) {
+            JSONObject p = panes != null ? panes.optJSONObject(i) : null;
+            long age = p != null ? now - RemotePanes.paneAt(cache, p) : 0;
+            boolean show = p != null && activeWs == 1 && age <= 2L * p.optInt("ttl", 180);
+            remoteBox[i].setVisibility(show ? VISIBLE : GONE);
+            remoteBody[i].removeAllViews();
+            if (!show) continue;
+            shown++;
+            remoteBox[i].setLegend(p.optString("title", p.optString("id")).toLowerCase(Locale.getDefault()), px(14), px(18));
+            remoteBody[i].setAlpha(age > p.optInt("ttl", 180) ? 0.55f : 1f);
+            JSONArray lines = p.optJSONArray("lines");
+            for (int k = 0; lines != null && k < lines.length(); k++) {
+                JSONObject l = lines.optJSONObject(k);
+                if (l == null) continue;
+                LinearLayout r = hbox();
+                TextView n = text(l.optString("label"), REMOTE_TEXT, false);
+                n.setTextColor(t.fg);
+                n.setSingleLine(true);
+                n.setEllipsize(TextUtils.TruncateAt.END);
+                r.addView(n, new LinearLayout.LayoutParams(0, -2, 1f));
+                String tone = l.optString("tone");
+                TextView v = text(l.optString("value"), REMOTE_TEXT, false);
+                v.setTextColor("up".equals(tone) ? t.green : "down".equals(tone) ? t.red : t.fgBright);
+                v.setSingleLine(true);
+                LinearLayout.LayoutParams vl = new LinearLayout.LayoutParams(-2, -2);
+                vl.leftMargin = px(12);
+                r.addView(v, vl);
+                LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(-1, -2);
+                ll.topMargin = px(k == 0 ? 0 : 8);
+                remoteBody[i].addView(r, ll);
+            }
+        }
+        remoteRow.setVisibility(shown > 0 ? VISIBLE : GONE);
+        // With the widgets above switched off, the row moves up to the top (aligned with the fastfetch box).
+        View row2 = (View) depBox.getParent();
+        row2.setVisibility(depBox.getVisibility());
+        boolean above = wxBox.getVisibility() == VISIBLE || pcBox.getVisibility() == VISIBLE
+                || aiBoxRef.getVisibility() == VISIBLE || depBox.getVisibility() == VISIBLE;
+        LinearLayout.LayoutParams rl = (LinearLayout.LayoutParams) remoteRow.getLayoutParams();
+        int top = above ? px(16) : 0;
+        if (rl.topMargin != top) {
+            rl.topMargin = top;
+            remoteRow.setLayoutParams(rl);
+        }
+    }
+
+    /** Fetched panes are read from across the room: larger than the 19 px widget text. */
+    private static final float REMOTE_TEXT = 24;
 
     private void updateWeather() {
         wxTemp.setTextColor(t.accent);
@@ -558,6 +648,14 @@ final class HomeV29 extends FrameLayout {
         wxLine2.setTextColor(t.fg);
         JSONObject w = Weather.cached(act);
         JSONObject cur = w != null ? w.optJSONObject("current") : null;
+        barWx.setVisibility(cfg.barWeather && cur != null ? VISIBLE : GONE);
+        if (cfg.barWeather && cur != null) {
+            barWxIcon.setImageResource(Weather.icon(cur.optInt("weather_code")));
+            barWxIcon.setColorFilter(t.fgBright);
+            barWxTemp.setTextColor(t.fgBright);
+            barWxTemp.setText(Weather.temp(cur.optDouble("temperature_2m"), cfg.tempF) + (cfg.tempF ? "°F" : "°"));
+            barWx.setContentDescription(act.getString(Weather.describe(cur.optInt("weather_code"))));
+        }
         if (cur == null) {
             wxTemp.setText("--°");
             wxLine1.setText(Weather.where(act, cfg) == null ? act.getString(R.string.v29_wx_locating) : act.getString(R.string.weather_loading));
