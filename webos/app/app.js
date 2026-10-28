@@ -618,6 +618,25 @@
     renderModalList();
   }
 
+  // Text field in a menu (Walker, city, PC address). Backspace edits the text instead of closing the
+  // menu, and ▼ OK leave the field first: while it keeps focus, webOS sends OK to the on-screen
+  // keyboard instead of the list. ▲ on the first list item goes back into the field.
+  var modalInput = document.getElementById("modal-input");
+  modalInput.addEventListener("keydown", function (e) {
+    var k = e.key || { 8: "Backspace", 13: "Enter", 38: "ArrowUp", 40: "ArrowDown" }[e.keyCode];
+    if (k === "Backspace" || k === "ArrowUp") e.stopPropagation();   // edit text / stay in the field
+    else if (k === "ArrowDown") { modalInput.blur(); e.stopPropagation(); }   // land on the first item
+    else if (k === "Enter") modalInput.blur();                                  // pick the highlighted item
+  });
+  document.addEventListener("keydown", function (e) {
+    var up = e.key === "ArrowUp" || e.keyCode === 38;
+    if (!up || !state.modalOpen || state.modalIdx !== 0 || document.activeElement === modalInput) return;
+    if (document.getElementById("modal-input-wrap").style.display !== "block") return;
+    modalInput.focus();
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+
   function closeModal() {
     state.modalOpen = false;
     document.getElementById("modal-backdrop").className = "";
