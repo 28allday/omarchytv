@@ -190,6 +190,13 @@ final class LauncherConfig {
     final boolean tvEnabled;
 
     /**
+     * Panes the TV fetches itself (omarchytv.json "remotePanes": {"url": "https://…", "refreshSec": 300}): same
+     * body as PUT /v1/widgets, panes only. Empty url (default) = off. See {@link RemotePanes}.
+     */
+    final String remotePanesUrl;
+    final int remotePanesRefreshSec;
+
+    /**
      * AI-pane sources the PC can mirror (omarchytv.json "aiSources", pushed with PUT /v1/ai). Present only when
      * the PC accepts the "ai_sources" event; the TV then shows one switch per source. Ids are whatever the PC sends.
      */
@@ -460,6 +467,10 @@ final class LauncherConfig {
         voiceKey = j != null && "assistant".equals(j.optString("voiceKey")) ? "assistant" : "launcher";
         JSONObject tv = j != null ? j.optJSONObject("tv") : null;
         tvEnabled = tv == null || tv.optBoolean("enabled", true);
+        JSONObject rp = j != null ? j.optJSONObject("remotePanes") : null;
+        String rpUrl = rp != null ? rp.optString("url", "").trim() : "";
+        remotePanesUrl = rpUrl.startsWith("https://") && rpUrl.length() <= 512 ? rpUrl : "";
+        remotePanesRefreshSec = rp != null ? (int) clamp(rp.optInt("refreshSec", 300), 300, 86_400) : 300;
         JSONObject wx = j != null ? j.optJSONObject("weather") : null;
         weatherLat = wx != null ? wx.optDouble("lat", Double.NaN) : Double.NaN;
         weatherLon = wx != null ? wx.optDouble("lon", Double.NaN) : Double.NaN;

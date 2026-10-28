@@ -53,6 +53,30 @@ tools/venv/bin/python -I tools/b64push.py omarchytv.json /sdcard/Android/data/co
 `wallpaper` may also be an absolute path to an image on the TV (decoded subsampled to screen size).
 See [PLUGINS.md](PLUGINS.md) for the widget list.
 
+### Remote panes (fetched by the TV)
+
+For data with no PC on the LAN to push it (Omarchy Link only accepts LAN peers), the TV can fetch panes
+itself from an HTTPS URL:
+
+```json
+"remotePanes": { "url": "https://example.com/tv/panes.json", "refreshSec": 300 }
+```
+
+The body is the one of `PUT /v1/widgets` (PROTOCOL.md §6), **panes only**: shortcuts and actions are
+ignored, so a URL can only show text. Same limits and cleaning (8 panes × 8 lines, label ≤ 16, value ≤ 64,
+printable text). A line may carry `"tone": "up"` or `"down"` to colour its value green or red. Up to 3 panes
+are shown in a row under the home widgets.
+
+```json
+{ "panes": [ { "id": "crypto", "title": "crypto · 24h", "ttl": 900, "at": 1793112467,
+               "lines": [ { "label": "BTC", "value": "$80,148  +0.3%", "tone": "up" } ] } ] }
+```
+
+Rules: `https://` only, no redirects, at most 64 KiB, fetched on a background thread at most every
+`refreshSec` (300–86400, default 300: the PLUGINS.md minimum) and only while the home screen is resumed. The last good answer is
+cached in the app's files dir; a pane dims after `ttl` and hides after 2 × `ttl` (counted from its `at`,
+else from the fetch), so a dead source never shows old numbers as current. No url (default) = off.
+
 ## Screensaver
 
 `OmarchyDream` re-creates Omarchy's screensaver (`bin/omarchy-screensaver` loops

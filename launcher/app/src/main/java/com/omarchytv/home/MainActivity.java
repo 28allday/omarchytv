@@ -117,7 +117,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, T
             updatePanes();
             if (home != null) {
                 home.refresh();
-                Weather.refreshAuto(MainActivity.this, LauncherConfig.get(MainActivity.this), home::refresh);
+                LauncherConfig c = LauncherConfig.get(MainActivity.this);
+                Weather.refreshAuto(MainActivity.this, c, home::refresh);
+                RemotePanes.refreshIfStale(MainActivity.this, c.remotePanesUrl, c.remotePanesRefreshSec, home::refresh);
             }
             handler.postDelayed(this, untilNextMinute());
         }
@@ -900,6 +902,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, T
         if (home != null) {
             home.bind(cfg, adapter);
             Weather.refreshAuto(this, cfg, home::refresh);
+            RemotePanes.refreshIfStale(this, cfg.remotePanesUrl, cfg.remotePanesRefreshSec, home::refresh);
         }
         // Stock launcher back as home after a reboot? Ask once per boot, gently; never change it ourselves.
         if (!HomeCheck.isDefaultHome(this) && (getIntent().getBooleanExtra(HomeCheck.EXTRA_ASK, false) || HomeCheck.shouldAsk(this))) {
