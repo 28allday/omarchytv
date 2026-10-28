@@ -849,7 +849,7 @@
       { label: "Language", right: cfg.lang || "auto", act: function () {
         var l = ["", "en", "it", "de"];
         cfg.lang = l[(l.indexOf(cfg.lang) + 1) % l.length];
-        saveCfg(); renderAll(); openAllSettingsModal();
+        saveCfg(); updateClock(); renderAll(); openAllSettingsModal();
       } },
       { label: "Next background", right: wlist.length ? ((cfg.wallpaperIdx % wlist.length) + 1) + "/" + wlist.length : "procedural", act: function () {
         cfg.wallpaperIdx++; saveCfg(); applyTheme(); openAllSettingsModal();
