@@ -1046,7 +1046,13 @@
     if (state.ws === 1 && state.zone === "ws2") {
       if (k === "ArrowRight") { state.ws2Idx = Math.min(TV_INPUTS.length - 1, state.ws2Idx + 1); renderAll(); e.preventDefault(); return; }
       if (k === "ArrowLeft") { state.ws2Idx = Math.max(0, state.ws2Idx - 1); renderAll(); e.preventDefault(); return; }
-      if (k === "ArrowUp") { state.zone = "bar"; renderAll(); e.preventDefault(); return; }
+      // 4 tiles per row (#ws2-grid): ▼ goes to the row below, ▲ to the row above or the bar
+      if (k === "ArrowDown") { if (state.ws2Idx + 4 < TV_INPUTS.length) { state.ws2Idx += 4; renderAll(); } e.preventDefault(); return; }
+      if (k === "ArrowUp") {
+        if (state.ws2Idx >= 4) state.ws2Idx -= 4;
+        else state.zone = "bar";
+        renderAll(); e.preventDefault(); return;
+      }
       if (k === "Enter") { launchApp(TV_INPUTS[state.ws2Idx]); e.preventDefault(); return; }
     }
 
