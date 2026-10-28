@@ -453,7 +453,12 @@
       d.className = "app-tile" + (state.ws === 0 && state.zone === "dock" && state.dockIdx === realIdx ? " focused" : "");
       d.innerHTML = buildTileHTML(app);
       d.onclick = function () { state.zone = "dock"; state.dockIdx = realIdx; renderAll(); launchApp(app); };
-      d.onmouseenter = function () { if (!state.modalOpen && state.ws === 0) { state.zone = "dock"; state.dockIdx = realIdx; renderAll(); } };
+      // renderAll() rebuilds the strip, so only re-render when focus actually moves; otherwise the
+      // tile under the pointer is replaced on every hover and a click never lands.
+      d.onmouseenter = function () {
+        if (state.modalOpen || state.ws !== 0 || (state.zone === "dock" && state.dockIdx === realIdx)) return;
+        state.zone = "dock"; state.dockIdx = realIdx; renderAll();
+      };
       strip.appendChild(d);
     });
 
