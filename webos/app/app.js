@@ -7,6 +7,7 @@
   var STRINGS = {
     en: {
       tip_wifi: "Wi-Fi & network", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Inputs (TV / HDMI)", tip_saver: "Start screensaver",
+      sys_clock: "Clock",
       box_weather: "weather", box_pc: "omarchy · pc", box_ai: "ai credits · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "system",
       term_theme: "theme ", term_net: "net ", term_up: "up ",
       pc_not_connected: "pc not connected",
@@ -25,6 +26,7 @@
     },
     it: {
       tip_wifi: "Wi-Fi e rete", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Ingressi (TV / HDMI)", tip_saver: "Avvia salvaschermo",
+      sys_clock: "Orologio",
       box_weather: "meteo", box_pc: "omarchy · pc", box_ai: "crediti ia · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "sistema",
       term_theme: "tema ", term_net: "rete ", term_up: "up ",
       pc_not_connected: "pc non connesso",
@@ -43,6 +45,7 @@
     },
     de: {
       tip_wifi: "WLAN & Netzwerk", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Eingänge (TV / HDMI)", tip_saver: "Bildschirmschoner starten",
+      sys_clock: "Uhr",
       box_weather: "wetter", box_pc: "omarchy · pc", box_ai: "ki-guthaben · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "system",
       term_theme: "thema ", term_net: "netz ", term_up: "up ",
       pc_not_connected: "pc nicht verbunden",
@@ -85,6 +88,7 @@
     pcHost: "",
     pcSimulated: false,
     aiCredits: "percent",
+    clockFormat: "auto",   // "auto" (12 h in English, 24 h otherwise), "12" or "24"
     widgets: { term: true, weather: true, pc: true, ai: true, deploy: false },
     hiddenApps: []
   };
@@ -238,10 +242,17 @@
       it: ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"],
       de: ["jan","feb","mär","apr","mai","jun","jul","aug","sep","okt","nov","dez"]
     }[lang] || ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+    document.getElementById("bar-clock").textContent = days[d.getDay()] + " " + d.getDate() + " " + months[d.getMonth()] + "  " + clockText(d);
+  }
+
+  // 12 or 24 hour time for the bar and the screensaver clock (cfg.clockFormat, "auto" follows the language).
+  function use24h() {
+    return cfg.clockFormat === "24" || (cfg.clockFormat !== "12" && getLang() !== "en");
+  }
+  function clockText(d) {
     var h = d.getHours();
     var m = ("0" + d.getMinutes()).slice(-2);
-    var timeStr = lang === "en" ? (((h + 11) % 12 + 1) + ":" + m + (h >= 12 ? " PM" : " AM")) : (("0" + h).slice(-2) + ":" + m);
-    document.getElementById("bar-clock").textContent = days[d.getDay()] + " " + d.getDate() + " " + months[d.getMonth()] + "  " + timeStr;
+    return use24h() ? ("0" + h).slice(-2) + ":" + m : ((h + 11) % 12 + 1) + ":" + m + (h >= 12 ? " PM" : " AM");
   }
 
   var logoTimer = null;
@@ -736,6 +747,12 @@
         cfg.lang = l[(l.indexOf(cfg.lang) + 1) % l.length];
         saveCfg(); renderAll(); openAllSettingsModal();
       } },
+      { label: tr("sys_clock"), right: cfg.clockFormat === "12" || cfg.clockFormat === "24" ? cfg.clockFormat + " h" : "auto (" + (use24h() ? "24" : "12") + " h)", act: function () {
+        var f = ["auto", "12", "24"], at = state.modalIdx;
+        cfg.clockFormat = f[(f.indexOf(cfg.clockFormat) + 1) % f.length];
+        saveCfg(); updateClock(); openAllSettingsModal();
+        state.modalIdx = at; renderModalList();   // stay on this row so OK keeps cycling
+      } },
       { label: "Next background", right: wlist.length ? ((cfg.wallpaperIdx % wlist.length) + 1) + "/" + wlist.length : "procedural", act: function () {
         cfg.wallpaperIdx++; saveCfg(); applyTheme(); openAllSettingsModal();
       } },
@@ -804,6 +821,7 @@
     color: function () { return currentThemeObj().accent; },
     clockColor: function () { return currentThemeObj().fg; },
     showClock: function () { return !!cfg.saverShowClock; },
+    clockText: function (d) { return clockText(d); },
     widthFraction: function () { return cfg.saverLogoScale || 0.65; },
     exclude: function () { return ""; },
     forceEffect: function () { return ""; },
