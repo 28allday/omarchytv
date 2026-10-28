@@ -325,12 +325,23 @@ def cmd_ai(a, cfg):
         _client(cfg).put_ai_providers(lst)
         print(f"Sent {len(lst['providers'])} assistant providers to the TV.")
         return 0
+    printed = False
+
+    def _on_delta(t):
+        nonlocal printed
+        if t:
+            printed = True
+            sys.stdout.write(t)
+            sys.stdout.flush()
+
     try:
-        res = asst.ask(" ".join(a.text), provider=a.provider, lang=a.lang,
-                       on_delta=lambda t: (sys.stdout.write(t), sys.stdout.flush()))
+        res = asst.ask(" ".join(a.text), provider=a.provider, lang=a.lang, on_delta=_on_delta)
     except (ValueError, assistant.NoProvider, assistant.RateLimited, ai.ProviderError) as e:
         print(f"omarchy-link: {e}", file=sys.stderr)
         return 1
+    if not printed and res.get("text"):
+        sys.stdout.write(res["text"])
+        sys.stdout.flush()
     print(f"\n[{res['provider']}{' / ' + res['model'] if res.get('model') else ''}]")
     return 0
 
