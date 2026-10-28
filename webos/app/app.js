@@ -9,6 +9,8 @@
       tip_wifi: "Wi-Fi & network", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Inputs (TV / HDMI)", tip_saver: "Start screensaver",
       box_weather: "weather", box_pc: "omarchy · pc", box_ai: "ai credits · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "system",
       term_theme: "theme ", term_net: "net ", term_up: "up ",
+      wp_title: "Wallpaper", wp_sub: "Any theme's background. A picked one stays when you change theme.",
+      wp_follow: "Follow the theme", wp_plain: "Theme colours, no image",
       pc_not_connected: "pc not connected",
       hint_tv: "OK watch TV · ▲ bar · long OK: Walker",
       hint_app: "OK open · ▲ bar · long OK: Move / Hide",
@@ -27,6 +29,8 @@
       tip_wifi: "Wi-Fi e rete", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Ingressi (TV / HDMI)", tip_saver: "Avvia salvaschermo",
       box_weather: "meteo", box_pc: "omarchy · pc", box_ai: "crediti ia · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "sistema",
       term_theme: "tema ", term_net: "rete ", term_up: "up ",
+      wp_title: "Sfondo", wp_sub: "Lo sfondo di qualsiasi tema. Quello scelto resta anche cambiando tema.",
+      wp_follow: "Segui il tema", wp_plain: "Colori del tema, senza immagine",
       pc_not_connected: "pc non connesso",
       hint_tv: "OK guarda TV · ▲ barra · OK lungo: Walker",
       hint_app: "OK apri · ▲ barra · OK lungo: Sposta / Nascondi",
@@ -45,6 +49,8 @@
       tip_wifi: "WLAN & Netzwerk", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Eingänge (TV / HDMI)", tip_saver: "Bildschirmschoner starten",
       box_weather: "wetter", box_pc: "omarchy · pc", box_ai: "ki-guthaben · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "system",
       term_theme: "thema ", term_net: "netz ", term_up: "up ",
+      wp_title: "Hintergrund", wp_sub: "Der Hintergrund eines beliebigen Themas. Ein gewählter bleibt beim Themawechsel.",
+      wp_follow: "Dem Thema folgen", wp_plain: "Themafarben, kein Bild",
       pc_not_connected: "pc nicht verbunden",
       hint_tv: "OK TV ansehen · ▲ Leiste · lang OK: Walker",
       hint_app: "OK öffnen · ▲ Leiste · lang OK: Verschieben / Ausblenden",
@@ -67,6 +73,7 @@
     opacity: 0.75,
     wallpaperDim: 0,
     wallpaperIdx: 0,
+    wallpaper: "",        // "" follows the theme, "plain" = theme colours, else a path from DATA.wallpapers
     proceduralBg: false,
     tempUnit: "C",
     weatherCity: "Alessandria",
@@ -206,7 +213,10 @@
 
     var wl = document.getElementById("wallpaper-layer");
     var wlist = DATA.wallpapers[cfg.theme] || [];
-    if (cfg.proceduralBg || !wlist.length) {
+    var picked = cfg.wallpaper && cfg.wallpaper !== "plain" && allWallpapers().indexOf(cfg.wallpaper) >= 0 ? cfg.wallpaper : "";
+    if (picked) {
+      wl.style.backgroundImage = "url('" + picked + "')";
+    } else if (cfg.proceduralBg || cfg.wallpaper === "plain" || !wlist.length) {
       wl.style.backgroundImage = "radial-gradient(circle at 75% 20%, " + hexToRgba(t.accent, 0.22) + " 0%, " + t.bg + " 70%)";
     } else {
       var wp = wlist[cfg.wallpaperIdx % wlist.length];
@@ -214,6 +224,13 @@
     }
     var dim = document.getElementById("wallpaper-dim");
     dim.style.background = "rgba(0,0,0," + (cfg.wallpaperDim || 0) + ")";
+  }
+
+  // Every bundled background, in theme order (DATA.wallpapers: theme -> list of paths).
+  function allWallpapers() {
+    var out = [];
+    Object.keys(DATA.wallpapers || {}).forEach(function (th) { out = out.concat(DATA.wallpapers[th]); });
+    return out;
   }
 
   function fitStage() {
@@ -737,13 +754,14 @@
         saveCfg(); renderAll(); openAllSettingsModal();
       } },
       { label: "Next background", right: wlist.length ? ((cfg.wallpaperIdx % wlist.length) + 1) + "/" + wlist.length : "procedural", act: function () {
-        cfg.wallpaperIdx++; saveCfg(); applyTheme(); openAllSettingsModal();
+        cfg.wallpaperIdx++; cfg.wallpaper = ""; saveCfg(); applyTheme(); openAllSettingsModal();
       } },
       { label: "Wallpaper dimming", right: Math.round((cfg.wallpaperDim || 0) * 100) + "%", act: function () {
         var d = [0, 0.25, 0.5];
         cfg.wallpaperDim = d[(d.indexOf(cfg.wallpaperDim) + 1) % d.length];
         saveCfg(); applyTheme(); openAllSettingsModal();
       } },
+      { label: tr("wp_title"), right: "›", act: function () { openWallpaperModal(); } },
       { label: "Show TV tile on dock", right: cfg.tvEnabled ? "on" : "off", act: function () {
         cfg.tvEnabled = !cfg.tvEnabled; saveCfg(); renderAll(); openAllSettingsModal();
       } },
@@ -780,10 +798,32 @@
     });
   }
 
+  // Wallpaper picker: follow the theme (default), plain theme colours, or any theme's background.
+  // Picking applies at once and keeps the menu open on that row, so you can compare a few.
+  function openWallpaperModal(keepFocus) {
+    var focus = state.modalIdx;
+    function pick(v) { cfg.wallpaper = v; saveCfg(); applyTheme(); openWallpaperModal(true); }
+    var items = [
+      { label: tr("wp_follow"), right: cfg.wallpaper ? "" : "✓", act: function () { pick(""); } },
+      { label: tr("wp_plain"), right: cfg.wallpaper === "plain" ? "✓" : "", act: function () { pick("plain"); } }
+    ];
+    allWallpapers().forEach(function (p) {
+      var parts = p.split("/");   // wallpapers/<theme>/<NN-name>.webp
+      var name = parts[parts.length - 1].replace(/^\d+-/, "").replace(/\.\w+$/, "");
+      items.push({ label: parts[parts.length - 2] + " · " + name, right: cfg.wallpaper === p ? "✓" : "", act: function () { pick(p); } });
+    });
+    openModal(tr("wp_title"), tr("wp_sub"), items);
+    var cur = 0;
+    items.forEach(function (it, i) { if (it.right === "✓") cur = i; });
+    state.modalIdx = keepFocus ? Math.min(focus, items.length - 1) : cur;
+    renderModalList();
+  }
+
   function openOmarchyMenu() {
     openModal("Omarchy Menu", "OmarchyTV 2.11.0-testing (LG webOS)", [
       { label: "Walker (app launcher)", right: "›", act: openWalkerModal },
       { label: tr("sys_themes"), right: cfg.theme, act: openThemesModal },
+      { label: tr("wp_title"), right: "›", act: function () { openWallpaperModal(); } },
       { label: tr("wx_title"), right: "°" + cfg.tempUnit, act: openWeatherModal },
       { label: tr("sys_saver"), right: "›", act: openSaverModal },
       { label: tr("sys_all"), right: "›", act: openAllSettingsModal },
