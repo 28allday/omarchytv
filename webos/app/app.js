@@ -19,6 +19,9 @@
       sys_webos: "webOS TV settings", sys_themes: "Themes", sys_trans: "Transparency", sys_widgets: "Home widgets",
       sys_arrange: "Arrange panels", sys_saver: "Screensaver", sys_saver_idle: "Start screensaver after",
       sys_logo_anim: "Animated logo", sys_text_tiles: "Text tiles (terminal style)", sys_all: "All OmarchyTV settings", sys_about: "About & licences",
+      tile_move: "Move", tile_hide: "Hide", tile_cancel: "Cancel", move_hint: "◀▶▲▼ move · OK save · Back cancel",
+      app_hidden: "Hidden. Show it again in All settings › Hidden apps", hidden_apps: "Hidden apps", hidden_none: "No hidden apps",
+      hidden_sub: "OK shows the app again", reset_order: "Reset app order", order_reset: "App order reset",
       wx_title: "Weather", wx_auto: "Automatic (from IP)", wx_search: "Search city…", wx_unit: "Temperature unit",
       wx_min: "min ", wx_max: "max ",
       wmo: { 0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "overcast", 45: "fog", 51: "drizzle", 61: "rain", 71: "snow", 80: "showers", 95: "thunderstorm" }
@@ -37,6 +40,9 @@
       sys_webos: "Impostazioni TV webOS", sys_themes: "Temi", sys_trans: "Trasparenza", sys_widgets: "Widget della Home",
       sys_arrange: "Disponi pannelli", sys_saver: "Salvaschermo", sys_saver_idle: "Avvia salvaschermo dopo",
       sys_logo_anim: "Logo animato", sys_text_tiles: "Tile solo testo (stile terminale)", sys_all: "Tutte le impostazioni OmarchyTV", sys_about: "Info e licenze",
+      tile_move: "Sposta", tile_hide: "Nascondi", tile_cancel: "Annulla", move_hint: "◀▶▲▼ sposta · OK salva · Indietro annulla",
+      app_hidden: "Nascosta. Mostrala di nuovo in Tutte le impostazioni › App nascoste", hidden_apps: "App nascoste", hidden_none: "Nessuna app nascosta",
+      hidden_sub: "OK mostra di nuovo l'app", reset_order: "Ripristina ordine app", order_reset: "Ordine app ripristinato",
       wx_title: "Meteo", wx_auto: "Automatica (da IP)", wx_search: "Cerca città…", wx_unit: "Unità temperatura",
       wx_min: "min ", wx_max: "max ",
       wmo: { 0: "sereno", 1: "poco nuvoloso", 2: "parz. nuvoloso", 3: "coperto", 45: "nebbia", 51: "pioviggine", 61: "pioggia", 71: "neve", 80: "rovesci", 95: "temporale" }
@@ -55,6 +61,9 @@
       sys_webos: "webOS TV-Einstellungen", sys_themes: "Themen", sys_trans: "Transparenz", sys_widgets: "Startseiten-Widgets",
       sys_arrange: "Panels anordnen", sys_saver: "Bildschirmschoner", sys_saver_idle: "Bildschirmschoner starten nach",
       sys_logo_anim: "Animiertes Logo", sys_text_tiles: "Text-Kacheln (Terminal-Stil)", sys_all: "Alle OmarchyTV-Einstellungen", sys_about: "Info & Lizenzen",
+      tile_move: "Verschieben", tile_hide: "Ausblenden", tile_cancel: "Abbrechen", move_hint: "◀▶▲▼ verschieben · OK speichern · Zurück abbrechen",
+      app_hidden: "Ausgeblendet. Wieder einblenden unter Alle Einstellungen › Ausgeblendete Apps", hidden_apps: "Ausgeblendete Apps", hidden_none: "Keine ausgeblendeten Apps",
+      hidden_sub: "OK blendet die App wieder ein", reset_order: "App-Reihenfolge zurücksetzen", order_reset: "App-Reihenfolge zurückgesetzt",
       wx_title: "Wetter", wx_auto: "Automatisch (über IP)", wx_search: "Stadt suchen…", wx_unit: "Temperatureinheit",
       wx_min: "Min ", wx_max: "Max ",
       wmo: { 0: "klar", 1: "überwiegend klar", 2: "teilweise bewölkt", 3: "bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen", 71: "Schnee", 80: "Schauer", 95: "Gewitter" }
@@ -86,7 +95,8 @@
     pcSimulated: false,
     aiCredits: "percent",
     widgets: { term: true, weather: true, pc: true, ai: true, deploy: false },
-    hiddenApps: []
+    hiddenApps: [],
+    appOrder: []   // app ids in the user's order; apps not listed keep their DEFAULT_APPS position after them
   };
 
   var cfg = Object.assign({}, DEFAULT_CFG);
@@ -147,6 +157,10 @@
     modalOpen: false,
     modalItems: [],
     modalIdx: 0,
+    movingId: null,     // id of the app being moved (long OK › Move), null otherwise
+    moveSnapshot: null, // cfg.appOrder before the move, restored on Back
+    okTimer: null,      // pending long-press timer for OK on an app tile
+    okHeld: false,      // OK is still held after a long press: ignore its repeats and key-up
     weather: { tempC: 9, minC: 6, maxC: 16, code: 0, city: cfg.weatherCity || "Alessandria" },
     pcStatus: null
   };
@@ -416,8 +430,19 @@
     }).catch(function () {});
   }
 
+  // DEFAULT_APPS sorted by cfg.appOrder; ids missing from the order keep their default position after it.
+  function orderedApps() {
+    var order = cfg.appOrder || [];
+    return DEFAULT_APPS.slice().sort(function (a, b) {
+      var ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+      if (ia < 0) ia = order.length + DEFAULT_APPS.indexOf(a);
+      if (ib < 0) ib = order.length + DEFAULT_APPS.indexOf(b);
+      return ia - ib;
+    });
+  }
+
   function visibleApps() {
-    return DEFAULT_APPS.filter(function (a) {
+    return orderedApps().filter(function (a) {
       if (a.id === "tv" && !cfg.tvEnabled) return false;
       return cfg.hiddenApps.indexOf(a.id) < 0;
     });
@@ -450,7 +475,7 @@
     slice.forEach(function (app, i) {
       var realIdx = state.dockScroll + i;
       var d = document.createElement("div");
-      d.className = "app-tile" + (state.ws === 0 && state.zone === "dock" && state.dockIdx === realIdx ? " focused" : "");
+      d.className = "app-tile" + (state.ws === 0 && state.zone === "dock" && state.dockIdx === realIdx ? " focused" : "") + (app.id === state.movingId ? " moving" : "");
       d.innerHTML = buildTileHTML(app);
       d.onclick = function () { state.zone = "dock"; state.dockIdx = realIdx; renderAll(); launchApp(app); };
       // renderAll() rebuilds the strip, so only re-render when focus actually moves; otherwise the
@@ -465,6 +490,9 @@
     var cur = apps[state.dockIdx] || apps[0] || { name: "OmarchyTV", id: "tv" };
     document.getElementById("dock-app-name").textContent = cur.name;
     document.getElementById("dock-hint").textContent = cur.id === "tv" ? tr("hint_tv") : tr("hint_app");
+    var banner = document.getElementById("arrange-banner");
+    banner.textContent = tr("move_hint");
+    banner.style.display = state.movingId ? "block" : "none";
   }
 
   function renderWorkspaces() {
@@ -530,7 +558,7 @@
       var all = visibleApps();
       all.forEach(function (app, i) {
         var d = document.createElement("div");
-        d.className = "app-tile" + (state.zone === "ws3" && state.ws3Idx === i ? " focused" : "");
+        d.className = "app-tile" + (state.zone === "ws3" && state.ws3Idx === i ? " focused" : "") + (app.id === state.movingId ? " moving" : "");
         d.innerHTML = buildTileHTML(app);
         d.onclick = function () { state.zone = "ws3"; state.ws3Idx = i; renderAll(); launchApp(app); };
         g3.appendChild(d);
@@ -747,10 +775,77 @@
       { label: "Show TV tile on dock", right: cfg.tvEnabled ? "on" : "off", act: function () {
         cfg.tvEnabled = !cfg.tvEnabled; saveCfg(); renderAll(); openAllSettingsModal();
       } },
+      { label: tr("hidden_apps"), right: String(cfg.hiddenApps.length) + " ›", act: openHiddenAppsModal },
+      { label: tr("reset_order"), right: "", act: function () {
+        cfg.appOrder = []; saveCfg(); renderAll(); showToast(tr("order_reset"));
+      } },
       { label: "Temperature unit", right: "°" + cfg.tempUnit, act: function () {
         cfg.tempUnit = cfg.tempUnit === "C" ? "F" : "C"; saveCfg(); renderAll(); openAllSettingsModal();
       } }
     ]);
+  }
+
+  // Long OK on an app tile (dock or All apps): Move / Hide. The TV tile opens Walker instead.
+  function openTileMenu(app) {
+    if (!app) return;
+    if (app.id === "tv") { openWalkerModal(); return; }
+    openModal(app.name, app.appId, [
+      { label: tr("tile_move"), right: "◀▶", act: function () { closeModal(); startMove(app.id); } },
+      { label: tr("tile_hide"), right: "", act: function () {
+        if (cfg.hiddenApps.indexOf(app.id) < 0) cfg.hiddenApps.push(app.id);
+        saveCfg(); closeModal(); showToast(tr("app_hidden"));
+      } },
+      { label: tr("tile_cancel"), right: "", act: closeModal }
+    ]);
+  }
+
+  function openHiddenAppsModal() {
+    var items = DEFAULT_APPS.filter(function (a) { return cfg.hiddenApps.indexOf(a.id) >= 0; }).map(function (a) {
+      return { label: a.name, right: "show", act: function () {
+        cfg.hiddenApps = cfg.hiddenApps.filter(function (id) { return id !== a.id; });
+        saveCfg(); renderAll();
+        if (cfg.hiddenApps.length) openHiddenAppsModal(); else closeModal();
+      } };
+    });
+    if (!items.length) items = [{ label: tr("hidden_none"), right: "", act: closeModal }];
+    openModal(tr("hidden_apps"), tr("hidden_sub"), items);
+  }
+
+  function startMove(id) {
+    state.movingId = id;
+    state.moveSnapshot = (cfg.appOrder || []).slice();
+    state.moveFocus = state.ws === 2 ? state.ws3Idx : state.dockIdx;
+    // Pin the current order so every app has an explicit position while it moves.
+    cfg.appOrder = orderedApps().map(function (a) { return a.id; });
+    renderAll();
+  }
+
+  // Move the app being moved by `delta` places among the visible apps (hidden ones keep their slots).
+  function moveBy(delta) {
+    var vis = visibleApps();
+    var from = -1;
+    for (var i = 0; i < vis.length; i++) if (vis[i].id === state.movingId) from = i;
+    var first = vis[0] && vis[0].id === "tv" ? 1 : 0;   // the TV tile stays first
+    var to = Math.max(first, Math.min(vis.length - 1, from + delta));
+    if (from < 0 || to === from) return;
+    var order = cfg.appOrder.slice();
+    order.splice(order.indexOf(state.movingId), 1);
+    var anchor = order.indexOf(vis[to].id);
+    order.splice(to > from ? anchor + 1 : anchor, 0, state.movingId);
+    cfg.appOrder = order;
+    if (state.ws === 2) state.ws3Idx = to; else state.dockIdx = to;
+    renderAll();
+  }
+
+  function finishMove(save) {
+    if (!save) {
+      cfg.appOrder = state.moveSnapshot || [];
+      if (state.ws === 2) state.ws3Idx = state.moveFocus; else state.dockIdx = state.moveFocus;
+    }
+    state.movingId = null;
+    state.moveSnapshot = null;
+    saveCfg();
+    renderAll();
   }
 
   function openAboutModal() {
@@ -980,6 +1075,22 @@
     var k = e.key || LEGACY_KEYS[code] || (code >= 48 && code <= 57 ? String(code - 48) : "");
     var isBack = (k === "Escape" || k === "Backspace" || code === 461);
 
+    // A long press opened a menu while OK is still held: drop its auto-repeat so it can't pick an item.
+    if (state.okHeld && k === "Enter") { e.preventDefault(); return; }
+
+    if (state.movingId) {
+      var step = state.ws === 2 ? 7 : 0;
+      if (k === "ArrowLeft") moveBy(-1);
+      else if (k === "ArrowRight") moveBy(1);
+      else if (k === "ArrowUp" && step) moveBy(-step);
+      else if (k === "ArrowDown" && step) moveBy(step);
+      else if (k === "Enter") finishMove(true);
+      else if (isBack) finishMove(false);
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     if (state.modalOpen) {
       if (isBack) { closeModal(); e.preventDefault(); return; }
       if (k === "ArrowDown") { state.modalIdx = (state.modalIdx + 1) % Math.max(1, state.modalItems.length); renderModalList(); e.preventDefault(); return; }
@@ -1040,7 +1151,7 @@
       if (k === "ArrowRight") { state.dockIdx = Math.min(apps.length - 1, state.dockIdx + 1); renderAll(); e.preventDefault(); return; }
       if (k === "ArrowLeft") { state.dockIdx = Math.max(0, state.dockIdx - 1); renderAll(); e.preventDefault(); return; }
       if (k === "ArrowUp") { state.zone = "widgets"; renderAll(); e.preventDefault(); return; }
-      if (k === "Enter") { launchApp(apps[state.dockIdx]); e.preventDefault(); return; }
+      if (k === "Enter") { pressOk(apps[state.dockIdx]); e.preventDefault(); return; }
     }
 
     if (state.ws === 1 && state.zone === "ws2") {
@@ -1060,7 +1171,7 @@
         else state.zone = "bar";
         renderAll(); e.preventDefault(); return;
       }
-      if (k === "Enter") { launchApp(all[state.ws3Idx]); e.preventDefault(); return; }
+      if (k === "Enter") { pressOk(all[state.ws3Idx]); e.preventDefault(); return; }
     }
 
     if (state.ws === 3 && state.zone === "ws4") {
@@ -1090,6 +1201,29 @@
         renderAll(); e.preventDefault(); return;
       }
       if (k === "Enter") { rows[state.ws5Idx].act(); e.preventDefault(); return; }
+    }
+  });
+
+  // OK on an app tile: a short press launches on key-up, holding it for LONG_OK_MS opens the tile menu.
+  var LONG_OK_MS = 600;
+  function pressOk(app) {
+    if (state.okTimer) return; // auto-repeat while held
+    state.okTimer = setTimeout(function () {
+      state.okTimer = null;
+      state.okHeld = true;
+      openTileMenu(app);
+    }, LONG_OK_MS);
+    state.okApp = app;
+  }
+
+  window.addEventListener("keyup", function (e) {
+    if (e.keyCode !== 13 && e.key !== "Enter") return;
+    if (state.okHeld) { state.okHeld = false; e.preventDefault(); return; }
+    if (state.okTimer) {
+      clearTimeout(state.okTimer);
+      state.okTimer = null;
+      launchApp(state.okApp);
+      e.preventDefault();
     }
   });
 
