@@ -23,6 +23,8 @@
       app_hidden: "Hidden. Show it again in All settings › Hidden apps", hidden_apps: "Hidden apps", hidden_none: "No hidden apps",
       hidden_sub: "OK shows the app again", reset_order: "Reset app order", order_reset: "App order reset",
       wx_title: "Weather", wx_auto: "Automatic (from IP)", wx_search: "Search city…", wx_unit: "Temperature unit",
+      root_boot: "Open when the TV starts", root_home: "Home button opens OmarchyTV", root_needed: "rooted TV only",
+      root_missing: "Needs a rooted TV with Homebrew Channel (unrooted: see homewatch/ in the repo)", root_failed: "Could not change it: ",
       wx_min: "min ", wx_max: "max ",
       wmo: { 0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "overcast", 45: "fog", 51: "drizzle", 61: "rain", 71: "snow", 80: "showers", 95: "thunderstorm" }
     },
@@ -44,6 +46,8 @@
       app_hidden: "Nascosta. Mostrala di nuovo in Tutte le impostazioni › App nascoste", hidden_apps: "App nascoste", hidden_none: "Nessuna app nascosta",
       hidden_sub: "OK mostra di nuovo l'app", reset_order: "Ripristina ordine app", order_reset: "Ordine app ripristinato",
       wx_title: "Meteo", wx_auto: "Automatica (da IP)", wx_search: "Cerca città…", wx_unit: "Unità temperatura",
+      root_boot: "Apri all'avvio della TV", root_home: "Il tasto Home apre OmarchyTV", root_needed: "solo TV con root",
+      root_missing: "Serve una TV con root e Homebrew Channel (senza root: vedi homewatch/ nel repo)", root_failed: "Impossibile cambiarlo: ",
       wx_min: "min ", wx_max: "max ",
       wmo: { 0: "sereno", 1: "poco nuvoloso", 2: "parz. nuvoloso", 3: "coperto", 45: "nebbia", 51: "pioviggine", 61: "pioggia", 71: "neve", 80: "rovesci", 95: "temporale" }
     },
@@ -65,6 +69,8 @@
       app_hidden: "Ausgeblendet. Wieder einblenden unter Alle Einstellungen › Ausgeblendete Apps", hidden_apps: "Ausgeblendete Apps", hidden_none: "Keine ausgeblendeten Apps",
       hidden_sub: "OK blendet die App wieder ein", reset_order: "App-Reihenfolge zurücksetzen", order_reset: "App-Reihenfolge zurückgesetzt",
       wx_title: "Wetter", wx_auto: "Automatisch (über IP)", wx_search: "Stadt suchen…", wx_unit: "Temperatureinheit",
+      root_boot: "Beim Einschalten öffnen", root_home: "Home-Taste öffnet OmarchyTV", root_needed: "nur gerootete TVs",
+      root_missing: "Benötigt einen gerooteten TV mit Homebrew Channel (ohne Root: siehe homewatch/ im Repo)", root_failed: "Konnte nicht geändert werden: ",
       wx_min: "Min ", wx_max: "Max ",
       wmo: { 0: "klar", 1: "überwiegend klar", 2: "teilweise bewölkt", 3: "bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen", 71: "Schnee", 80: "Schauer", 95: "Gewitter" }
     }
@@ -162,7 +168,8 @@
     okTimer: null,      // pending long-press timer for OK on an app tile
     okHeld: false,      // OK is still held after a long press: ignore its repeats and key-up
     weather: { tempC: 9, minC: 6, maxC: 16, code: 0, city: cfg.weatherCity || "Alessandria" },
-    pcStatus: null
+    pcStatus: null,
+    root: null    // rooted-TV helper: null = not checked yet, false = no Homebrew Channel, else { boot, home }
   };
 
   window.__OMARCHY_STATE = state;
@@ -756,8 +763,66 @@
     if (keepFocus) { state.modalIdx = Math.min(focus, state.modalItems.length - 1); renderModalList(); }
   }
 
-  function openAllSettingsModal() {
+  // ---- Rooted TVs: open at start-up and take over the Home button -------------------------------
+  // Homebrew Channel's exec service runs shell commands as root. Toggling a setting creates or removes
+  // a flag file in ROOT_FLAGS and installs ROOT_HOOK, which Homebrew Channel runs at boot to start
+  // rooted/omarchytv-home.sh from this app's folder (see that script). Unrooted TVs have no such
+  // service: the settings say so, and homewatch/ covers them from another machine.
+  var ROOT_FLAGS = "/var/lib/omarchytv";
+  var ROOT_HOOK = "/var/lib/webosbrew/init.d/omarchytv";   // run-parts skips names with a dot
+  var ROOT_PID = "/tmp/omarchytv-home.pid";                // written by rooted/omarchytv-home.sh
+  var rootCalls = [];                                       // keep bridges alive until they answer
+
+  function rootExec(cmd, cb) {
+    if (!window.PalmServiceBridge) { cb(false, "not running on webOS"); return; }
+    var b = new PalmServiceBridge();
+    rootCalls.push(b);
+    b.onservicecallback = function (msg) {
+      rootCalls.splice(rootCalls.indexOf(b), 1);
+      var r = {};
+      try { r = JSON.parse(msg); } catch (e) {}
+      cb(!!r.returnValue, r.returnValue ? (r.stdoutString || "") : (r.errorText || r.stderrString || "error"));
+    };
+    b.call("luna://org.webosbrew.hbchannel.service/exec", JSON.stringify({ command: cmd }));
+  }
+
+  function rootRefresh(done) {
+    rootExec("ls " + ROOT_FLAGS + " 2>/dev/null; true", function (ok, out) {
+      state.root = ok ? { boot: /(^|\s)boot(\s|$)/.test(out), home: /(^|\s)home(\s|$)/.test(out) } : false;
+      if (done) done();
+    });
+  }
+
+  function rootSet(flag, on, done) {
+    var dir = decodeURIComponent(location.pathname.replace(/\/[^\/]*$/, ""));
+    var script = dir + "/rooted/omarchytv-home.sh";
+    var cmd = on
+      ? "mkdir -p " + ROOT_FLAGS + " && touch " + ROOT_FLAGS + "/" + flag +
+        " && printf '#!/bin/sh\\n# OmarchyTV start-up and Home-button helper (rooted TVs)\\nS=\"%s\"\\n[ -f \"$S\" ] && setsid sh \"$S\" </dev/null >/dev/null 2>&1 &\\n' '" + script + "' > " + ROOT_HOOK +
+        " && chmod 755 " + ROOT_HOOK +
+        " && (setsid sh '" + script + "' --no-boot </dev/null >/dev/null 2>&1 &)"
+      : "rm -f " + ROOT_FLAGS + "/" + flag +
+        // no Home redirect wanted: stop the helper's process group (it waits on a luna subscription)
+        "; [ -f " + ROOT_FLAGS + "/home ] || { p=$(cat " + ROOT_PID + " 2>/dev/null) && kill -- -$p; rm -f " + ROOT_PID + "; }" +
+        "; [ -f " + ROOT_FLAGS + "/boot ] || [ -f " + ROOT_FLAGS + "/home ] || rm -f " + ROOT_HOOK + "; true";
+    rootExec(cmd, function (ok, out) {
+      if (!ok) showToast(tr("root_failed") + out);
+      rootRefresh(done);
+    });
+  }
+
+  function rootRow(flag, label) {
+    var st = state.root;
+    return { label: label, right: st === null ? "…" : st === false ? tr("root_needed") : (st[flag] ? "on" : "off"), act: function () {
+      if (!state.root) { showToast(tr("root_missing")); return; }
+      rootSet(flag, !state.root[flag], function () { if (state.modalOpen) openAllSettingsModal(true); });
+    } };
+  }
+
+  function openAllSettingsModal(keepFocus) {
+    var focus = state.modalIdx;
     var wlist = DATA.wallpapers[cfg.theme] || [];
+    if (state.root === null) rootRefresh(function () { if (state.modalOpen) openAllSettingsModal(true); });
     openModal(tr("sys_all"), "OmarchyTV 2.11.0-testing (LG webOS)", [
       { label: "Language", right: cfg.lang || "auto", act: function () {
         var l = ["", "en", "it", "de"];
@@ -780,9 +845,12 @@
         cfg.appOrder = []; saveCfg(); renderAll(); showToast(tr("order_reset"));
       } },
       { label: "Temperature unit", right: "°" + cfg.tempUnit, act: function () {
-        cfg.tempUnit = cfg.tempUnit === "C" ? "F" : "C"; saveCfg(); renderAll(); openAllSettingsModal();
-      } }
+        cfg.tempUnit = cfg.tempUnit === "C" ? "F" : "C"; saveCfg(); renderAll(); openAllSettingsModal(true);
+      } },
+      rootRow("boot", tr("root_boot")),
+      rootRow("home", tr("root_home"))
     ]);
+    if (keepFocus) { state.modalIdx = Math.min(focus, state.modalItems.length - 1); renderModalList(); }
   }
 
   // Long OK on an app tile (dock or All apps): Move / Hide. The TV tile opens Walker instead.
