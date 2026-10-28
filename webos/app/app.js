@@ -1211,14 +1211,22 @@
     state.okTimer = setTimeout(function () {
       state.okTimer = null;
       state.okHeld = true;
-      openTileMenu(app);
+      // Walker focuses its search field, which brings up webOS's on-screen keyboard; opened while OK
+      // is still held, the keyboard would take OK's auto-repeat and type letters. Open it on release.
+      if (app && app.id === "tv") state.walkerOnRelease = true;
+      else openTileMenu(app);
     }, LONG_OK_MS);
     state.okApp = app;
   }
 
   window.addEventListener("keyup", function (e) {
     if (e.keyCode !== 13 && e.key !== "Enter") return;
-    if (state.okHeld) { state.okHeld = false; e.preventDefault(); return; }
+    if (state.okHeld) {
+      state.okHeld = false;
+      if (state.walkerOnRelease) { state.walkerOnRelease = false; openWalkerModal(); }
+      e.preventDefault();
+      return;
+    }
     if (state.okTimer) {
       clearTimeout(state.okTimer);
       state.okTimer = null;
