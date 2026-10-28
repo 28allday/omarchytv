@@ -27,6 +27,13 @@ Once OmarchyTV is installed, open it on your LG TV and **long-press the `0` (or 
 
 The remote's `Home` button still opens LG Home. If you have an always-on machine on your network (a NAS, home server or Raspberry Pi), the [OmarchyTV Home watcher](../homewatch/README.md) can send `Home` to OmarchyTV instead, so it feels like the TV's home screen. It runs off the TV in Docker or as a service; stop it and `Home` works as before.
 
+**Rooted TVs (Homebrew Channel):** no other machine is needed. In OmarchyTV open **Workspace 5 › All OmarchyTV settings** and turn on:
+
+- **Open when the TV starts**: OmarchyTV opens once the TV has booted.
+- **Home button opens OmarchyTV**: when LG Home comes up, OmarchyTV opens instead. Press `Home` while you are already in OmarchyTV to reach LG Home and its menus.
+
+Both run on the TV through Homebrew Channel's start-up scripts ([`app/rooted/omarchytv-home.sh`](app/rooted/omarchytv-home.sh)); turning both off removes the start-up hook. On unrooted TVs the two settings show "rooted TV only".
+
 ---
 
 ## Method A — Easiest GUI Install (webOS Dev Manager on PC / Mac / Linux)
