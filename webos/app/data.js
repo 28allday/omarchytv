@@ -579,10 +579,24 @@ window.OMARCHY_DATA = {
     "hackerman": [
       "wallpapers/hackerman/03-omarchy.webp"
     ],
+    "hermarchy": [
+      "wallpapers/hermarchy/01-hermarchy-command.webp",
+      "wallpapers/hermarchy/02-hermarchy.webp",
+      "wallpapers/hermarchy/03-hermarchy.webp",
+      "wallpapers/hermarchy/04-omarchy.webp"
+    ],
+    "jade-horse": [
+      "wallpapers/jade-horse/01-ink-horse.webp",
+      "wallpapers/jade-horse/02-carved-jade-horse.webp",
+      "wallpapers/jade-horse/03-mountain-horses.webp",
+      "wallpapers/jade-horse/04-omarchy.webp"
+    ],
     "kanagawa": [
       "wallpapers/kanagawa/02-omarchy.webp"
     ],
-    "last-horizon": [],
+    "last-horizon": [
+      "wallpapers/last-horizon/01-omarchy.webp"
+    ],
     "lumon": [
       "wallpapers/lumon/03-omarchy.webp"
     ],
@@ -610,8 +624,12 @@ window.OMARCHY_DATA = {
     "rose-pine": [
       "wallpapers/rose-pine/04-omarchy.webp"
     ],
-    "solitude": [],
-    "starship": [],
+    "solitude": [
+      "wallpapers/solitude/01-omarchy.webp"
+    ],
+    "starship": [
+      "wallpapers/starship/01-omarchy.webp"
+    ],
     "tokyo-night": [
       "wallpapers/tokyo-night/01-liftoff-sunset.webp",
       "wallpapers/tokyo-night/09-omarchy.webp"
@@ -621,6 +639,12 @@ window.OMARCHY_DATA = {
     ],
     "white": [
       "wallpapers/white/04-omarchy.webp"
+    ],
+    "year-of-the-horse": [
+      "wallpapers/year-of-the-horse/01-ink-horse.webp",
+      "wallpapers/year-of-the-horse/02-paper-horse.webp",
+      "wallpapers/year-of-the-horse/03-mountain-horses.webp",
+      "wallpapers/year-of-the-horse/04-omarchy.webp"
     ]
   },
   "logo": "                 \u2584\u2584\u2584\n \u2584\u2588\u2588\u2588\u2588\u2588\u2584    \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2584    \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2588   \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2588   \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2588   \u2584\u2588   \u2588\u2584    \u2584\u2588   \u2588\u2584     \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2584   \u2584\u2588   \u2588\u2584\n\u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588    \u2580\u2580\u2580\u2588\u2588\u2588\u2580\u2580\u2580  \u2588\u2588\u2588   \u2588\u2588\u2588\n\u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2580   \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588       \u2588\u2588\u2588     \u2588\u2588\u2588   \u2588\u2588\u2588\n\u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2584\u2588\u2588\u2588\u2584\u2584\u2584\u2588\u2588\u2588 \u2584\u2588\u2588\u2588\u2584\u2584\u2584\u2588\u2588\u2580  \u2588\u2588\u2588       \u2584\u2588\u2588\u2588\u2584\u2584\u2584\u2588\u2588\u2588\u2584 \u2588\u2588\u2588\u2584\u2584\u2584\u2588\u2588\u2588       \u2588\u2588\u2588     \u2588\u2588\u2588   \u2588\u2588\u2588\n\u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2580\u2588\u2588\u2588\u2580\u2580\u2580\u2588\u2588\u2588 \u2580\u2588\u2588\u2588\u2580\u2580\u2580\u2580    \u2588\u2588\u2588      \u2580\u2580\u2588\u2588\u2588\u2580\u2580\u2580\u2588\u2588\u2588  \u2580\u2580\u2580\u2580\u2580\u2580\u2588\u2588\u2588       \u2588\u2588\u2588     \u2588\u2588\u2588   \u2588\u2588\u2588\n\u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2584   \u2588\u2588\u2588   \u2588\u2588\u2588  \u2584\u2588\u2588   \u2588\u2588\u2588       \u2588\u2588\u2588     \u2580\u2588\u2588\u2584 \u2584\u2588\u2588\u2580\n\u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588   \u2588\u2588\u2588       \u2588\u2588\u2588      \u2580\u2588\u2588\u2584\u2588\u2588\u2580\n \u2580\u2588\u2588\u2588\u2588\u2588\u2580    \u2580\u2588   \u2588\u2588\u2588   \u2588\u2580   \u2588\u2588\u2588   \u2588\u2580   \u2588\u2588\u2588   \u2588\u2588\u2588  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2580   \u2588\u2588\u2588   \u2588\u2580    \u2580\u2588\u2588\u2588\u2588\u2588\u2580        \u2580\u2588\u2580        \u2580\u2588\u2580\n                                       \u2588\u2588\u2588   \u2588\u2580",
