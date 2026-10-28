@@ -725,7 +725,7 @@
       };
     });
     var curIdx = names.indexOf(cfg.theme);
-    openModal(tr("sys_themes") + " (23 stock Omarchy 2.11.0)", "Select a theme (MIT omarchy.webp + Liftoff Sunset)", items);
+    openModal(tr("sys_themes") + " (" + names.length + ")", "Select a theme (MIT omarchy.webp + Liftoff Sunset)", items);
     if (curIdx >= 0) { state.modalIdx = curIdx; renderModalList(); }
   }
 
@@ -959,7 +959,8 @@
   function openAboutModal() {
     var sub = "OmarchyTV 2.11.0-testing for LG webOS (community testing — NOT a beta)\n" +
       "Based on OmarchyTV v2.11.0 for Android TV by Marco Porro (MIT License).\n" +
-      "Includes 23 Omarchy themes, 20 MIT omarchy.webp wallpapers, 'Liftoff Sunset' by Tom Ballard, and 37 tte.js effects.";
+      "Includes " + Object.keys(DATA.themes).length + " Omarchy themes, " + [].concat.apply([], Object.keys(DATA.wallpapers).map(function (t) { return DATA.wallpapers[t]; })).length +
+      " wallpapers (MIT, and 'Liftoff Sunset' by Tom Ballard), and 37 tte.js effects.";
     openModal(tr("sys_about"), sub, [
       { label: "Version", right: "2.11.0-testing (webOS)", act: closeModal },
       { label: "Android base release", right: "2.11.0", act: closeModal },
