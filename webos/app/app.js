@@ -15,7 +15,7 @@
       hint_ws2: "OK switch input · ▲ bar · 1-5 workspaces",
       hint_ws3: "OK open · long OK: Move / Hide · 1-5 workspaces",
       ws4_heading: "Connect Omarchy Linux",
-      ws4_desc: "Pair the PC over LAN HTTP (http://<pc-ip>:8765/status.json) to see live CPU/RAM, AI credits and deploys on LG webOS.",
+      ws4_desc: "Pair the PC over LAN HTTP (http://<pc-ip>:8765/v1/status) to see live CPU/RAM, AI credits and deploys on LG webOS.",
       sys_webos: "webOS TV settings", sys_themes: "Themes", sys_trans: "Transparency", sys_widgets: "Home widgets",
       sys_arrange: "Arrange panels", sys_saver: "Screensaver", sys_saver_idle: "Start screensaver after",
       sys_logo_anim: "Animated logo", sys_text_tiles: "Text tiles (terminal style)", sys_all: "All OmarchyTV settings", sys_about: "About & licences",
@@ -38,7 +38,7 @@
       hint_ws2: "OK cambia ingresso · ▲ barra · 1-5 spazi",
       hint_ws3: "OK apri · OK lungo: Sposta / Nascondi · 1-5 spazi",
       ws4_heading: "Collega Omarchy Linux",
-      ws4_desc: "Abbina il PC via HTTP LAN (http://<ip-pc>:8765/status.json) per vedere stato, crediti IA e deploy qui.",
+      ws4_desc: "Abbina il PC via HTTP LAN (http://<ip-pc>:8765/v1/status) per vedere stato, crediti IA e deploy qui.",
       sys_webos: "Impostazioni TV webOS", sys_themes: "Temi", sys_trans: "Trasparenza", sys_widgets: "Widget della Home",
       sys_arrange: "Disponi pannelli", sys_saver: "Salvaschermo", sys_saver_idle: "Avvia salvaschermo dopo",
       sys_logo_anim: "Logo animato", sys_text_tiles: "Tile solo testo (stile terminale)", sys_all: "Tutte le impostazioni OmarchyTV", sys_about: "Info e licenze",
@@ -61,7 +61,7 @@
       hint_ws2: "OK Eingang wechseln · ▲ Leiste · 1-5 Arbeitsbereiche",
       hint_ws3: "OK öffnen · lang OK: Verschieben / Ausblenden · 1-5 Arbeitsbereiche",
       ws4_heading: "Omarchy Linux verbinden",
-      ws4_desc: "Koppeln Sie den PC über LAN HTTP (http://<pc-ip>:8765/status.json), um Status, KI-Guthaben und Deploys anzuzeigen.",
+      ws4_desc: "Koppeln Sie den PC über LAN HTTP (http://<pc-ip>:8765/v1/status), um Status, KI-Guthaben und Deploys anzuzeigen.",
       sys_webos: "webOS TV-Einstellungen", sys_themes: "Themen", sys_trans: "Transparenz", sys_widgets: "Startseiten-Widgets",
       sys_arrange: "Panels anordnen", sys_saver: "Bildschirmschoner", sys_saver_idle: "Bildschirmschoner starten nach",
       sys_logo_anim: "Animiertes Logo", sys_text_tiles: "Text-Kacheln (Terminal-Stil)", sys_all: "Alle OmarchyTV-Einstellungen", sys_about: "Info & Lizenzen",
@@ -1270,7 +1270,7 @@
           cfg.pcSimulated = !cfg.pcSimulated;
           saveCfg(); pollPcStatus(); renderAll();
         } else {
-          openModal("Pair Omarchy Linux PC", "Enter your Omarchy PC LAN IP (serves http://<ip>:8765/status.json):", [
+          openModal("Pair Omarchy Linux PC", "Enter your Omarchy PC LAN IP (serves http://<ip>:8765/v1/status):", [
             { label: "Use 192.168.1.100:8765", right: "LAN", act: function () { cfg.pcHost = "192.168.1.100"; saveCfg(); pollPcStatus(); closeModal(); } },
             { label: "Toggle simulated PC link", right: cfg.pcSimulated ? "on" : "off", act: function () { cfg.pcSimulated = !cfg.pcSimulated; saveCfg(); pollPcStatus(); closeModal(); } }
           ], "192.168.1.x");
