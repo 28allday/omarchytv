@@ -405,6 +405,12 @@ html, body {
   z-index: 5;
 }
 
+.app-tile.moving {
+  transform: scale(1.05) translateY(-10px);
+  border: 4px dashed var(--t-accent);
+  z-index: 6;
+}
+
 .app-tile .tile-banner {
   position: absolute;
   top: 0;
@@ -454,9 +460,11 @@ html, body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 18px;
-  margin-top: 8px;
   overflow-y: auto;
-  padding-right: 4px;
+  /* room for the focused tile's 1.05 scale and border inside the scroll box, which clips;
+     the negative side margins keep the tiles where they were */
+  padding: 8px;
+  margin: 0 -8px;
 }
 
 /* Workspace 4: PC */
@@ -627,7 +635,8 @@ html, body {
 /* Toast notification */
 #toast {
   position: absolute;
-  bottom: 44px;
+  /* above the Home dock window (top edge at y=788), so it never covers the tiles */
+  bottom: 304px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--popup-bg);

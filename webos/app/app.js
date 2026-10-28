@@ -7,55 +7,82 @@
   var STRINGS = {
     en: {
       tip_wifi: "Wi-Fi & network", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Inputs (TV / HDMI)", tip_saver: "Start screensaver",
+      sys_clock: "Clock",
       box_weather: "weather", box_pc: "omarchy · pc", box_ai: "ai credits · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "system",
       term_theme: "theme ", term_net: "net ", term_up: "up ",
+      wp_title: "Wallpaper", wp_sub: "Any theme's background. A picked one stays when you change theme.",
+      wp_follow: "Follow the theme", wp_plain: "Theme colours, no image",
       pc_not_connected: "pc not connected",
       hint_tv: "OK watch TV · ▲ bar · long OK: Walker",
       hint_app: "OK open · ▲ bar · long OK: Move / Hide",
       hint_ws2: "OK switch input · ▲ bar · 1-5 workspaces",
       hint_ws3: "OK open · long OK: Move / Hide · 1-5 workspaces",
       ws4_heading: "Connect Omarchy Linux",
-      ws4_desc: "Pair the PC over LAN HTTP (http://<pc-ip>:8765/status.json) to see live CPU/RAM, AI credits and deploys on LG webOS.",
+      ws4_desc: "Pair the PC over LAN HTTP (http://<pc-ip>:8765/v1/status) to see live CPU/RAM, AI credits and deploys on LG webOS.",
       sys_webos: "webOS TV settings", sys_themes: "Themes", sys_trans: "Transparency", sys_widgets: "Home widgets",
       sys_arrange: "Arrange panels", sys_saver: "Screensaver", sys_saver_idle: "Start screensaver after",
+      walker_none: "no matching apps",
       sys_logo_anim: "Animated logo", sys_text_tiles: "Text tiles (terminal style)", sys_all: "All OmarchyTV settings", sys_about: "About & licences",
+      tile_move: "Move", tile_hide: "Hide", tile_cancel: "Cancel", move_hint: "◀▶▲▼ move · OK save · Back cancel",
+      app_hidden: "Hidden. Show it again in All settings › Hidden apps", hidden_apps: "Hidden apps", hidden_none: "No hidden apps",
+      hidden_sub: "OK shows the app again", reset_order: "Reset app order", order_reset: "App order reset",
       wx_title: "Weather", wx_auto: "Automatic (from IP)", wx_search: "Search city…", wx_unit: "Temperature unit",
+      root_boot: "Open when the TV starts", root_home: "Home button opens OmarchyTV", root_needed: "rooted TV only",
+      root_missing: "Needs a rooted TV with Homebrew Channel (unrooted: see homewatch/ in the repo)", root_failed: "Could not change it: ",
       wx_min: "min ", wx_max: "max ",
       wmo: { 0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "overcast", 45: "fog", 51: "drizzle", 61: "rain", 71: "snow", 80: "showers", 95: "thunderstorm" }
     },
     it: {
       tip_wifi: "Wi-Fi e rete", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Ingressi (TV / HDMI)", tip_saver: "Avvia salvaschermo",
+      sys_clock: "Orologio",
       box_weather: "meteo", box_pc: "omarchy · pc", box_ai: "crediti ia · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "sistema",
       term_theme: "tema ", term_net: "rete ", term_up: "up ",
+      wp_title: "Sfondo", wp_sub: "Lo sfondo di qualsiasi tema. Quello scelto resta anche cambiando tema.",
+      wp_follow: "Segui il tema", wp_plain: "Colori del tema, senza immagine",
       pc_not_connected: "pc non connesso",
       hint_tv: "OK guarda TV · ▲ barra · OK lungo: Walker",
       hint_app: "OK apri · ▲ barra · OK lungo: Sposta / Nascondi",
       hint_ws2: "OK cambia ingresso · ▲ barra · 1-5 spazi",
       hint_ws3: "OK apri · OK lungo: Sposta / Nascondi · 1-5 spazi",
       ws4_heading: "Collega Omarchy Linux",
-      ws4_desc: "Abbina il PC via HTTP LAN (http://<ip-pc>:8765/status.json) per vedere stato, crediti IA e deploy qui.",
+      ws4_desc: "Abbina il PC via HTTP LAN (http://<ip-pc>:8765/v1/status) per vedere stato, crediti IA e deploy qui.",
       sys_webos: "Impostazioni TV webOS", sys_themes: "Temi", sys_trans: "Trasparenza", sys_widgets: "Widget della Home",
       sys_arrange: "Disponi pannelli", sys_saver: "Salvaschermo", sys_saver_idle: "Avvia salvaschermo dopo",
+      walker_none: "nessuna app trovata",
       sys_logo_anim: "Logo animato", sys_text_tiles: "Tile solo testo (stile terminale)", sys_all: "Tutte le impostazioni OmarchyTV", sys_about: "Info e licenze",
+      tile_move: "Sposta", tile_hide: "Nascondi", tile_cancel: "Annulla", move_hint: "◀▶▲▼ sposta · OK salva · Indietro annulla",
+      app_hidden: "Nascosta. Mostrala di nuovo in Tutte le impostazioni › App nascoste", hidden_apps: "App nascoste", hidden_none: "Nessuna app nascosta",
+      hidden_sub: "OK mostra di nuovo l'app", reset_order: "Ripristina ordine app", order_reset: "Ordine app ripristinato",
       wx_title: "Meteo", wx_auto: "Automatica (da IP)", wx_search: "Cerca città…", wx_unit: "Unità temperatura",
+      root_boot: "Apri all'avvio della TV", root_home: "Il tasto Home apre OmarchyTV", root_needed: "solo TV con root",
+      root_missing: "Serve una TV con root e Homebrew Channel (senza root: vedi homewatch/ nel repo)", root_failed: "Impossibile cambiarlo: ",
       wx_min: "min ", wx_max: "max ",
       wmo: { 0: "sereno", 1: "poco nuvoloso", 2: "parz. nuvoloso", 3: "coperto", 45: "nebbia", 51: "pioviggine", 61: "pioggia", 71: "neve", 80: "rovesci", 95: "temporale" }
     },
     de: {
       tip_wifi: "WLAN & Netzwerk", tip_bt: "Bluetooth", tip_vol: "Audio", tip_inputs: "Eingänge (TV / HDMI)", tip_saver: "Bildschirmschoner starten",
+      sys_clock: "Uhr",
       box_weather: "wetter", box_pc: "omarchy · pc", box_ai: "ki-guthaben · pc", box_tv: "tv", box_app: "app", box_ws_pc: "pc", box_system: "system",
       term_theme: "thema ", term_net: "netz ", term_up: "up ",
+      wp_title: "Hintergrund", wp_sub: "Der Hintergrund eines beliebigen Themas. Ein gewählter bleibt beim Themawechsel.",
+      wp_follow: "Dem Thema folgen", wp_plain: "Themafarben, kein Bild",
       pc_not_connected: "pc nicht verbunden",
       hint_tv: "OK TV ansehen · ▲ Leiste · lang OK: Walker",
       hint_app: "OK öffnen · ▲ Leiste · lang OK: Verschieben / Ausblenden",
       hint_ws2: "OK Eingang wechseln · ▲ Leiste · 1-5 Arbeitsbereiche",
       hint_ws3: "OK öffnen · lang OK: Verschieben / Ausblenden · 1-5 Arbeitsbereiche",
       ws4_heading: "Omarchy Linux verbinden",
-      ws4_desc: "Koppeln Sie den PC über LAN HTTP (http://<pc-ip>:8765/status.json), um Status, KI-Guthaben und Deploys anzuzeigen.",
+      ws4_desc: "Koppeln Sie den PC über LAN HTTP (http://<pc-ip>:8765/v1/status), um Status, KI-Guthaben und Deploys anzuzeigen.",
       sys_webos: "webOS TV-Einstellungen", sys_themes: "Themen", sys_trans: "Transparenz", sys_widgets: "Startseiten-Widgets",
       sys_arrange: "Panels anordnen", sys_saver: "Bildschirmschoner", sys_saver_idle: "Bildschirmschoner starten nach",
+      walker_none: "keine passende App",
       sys_logo_anim: "Animiertes Logo", sys_text_tiles: "Text-Kacheln (Terminal-Stil)", sys_all: "Alle OmarchyTV-Einstellungen", sys_about: "Info & Lizenzen",
+      tile_move: "Verschieben", tile_hide: "Ausblenden", tile_cancel: "Abbrechen", move_hint: "◀▶▲▼ verschieben · OK speichern · Zurück abbrechen",
+      app_hidden: "Ausgeblendet. Wieder einblenden unter Alle Einstellungen › Ausgeblendete Apps", hidden_apps: "Ausgeblendete Apps", hidden_none: "Keine ausgeblendeten Apps",
+      hidden_sub: "OK blendet die App wieder ein", reset_order: "App-Reihenfolge zurücksetzen", order_reset: "App-Reihenfolge zurückgesetzt",
       wx_title: "Wetter", wx_auto: "Automatisch (über IP)", wx_search: "Stadt suchen…", wx_unit: "Temperatureinheit",
+      root_boot: "Beim Einschalten öffnen", root_home: "Home-Taste öffnet OmarchyTV", root_needed: "nur gerootete TVs",
+      root_missing: "Benötigt einen gerooteten TV mit Homebrew Channel (ohne Root: siehe homewatch/ im Repo)", root_failed: "Konnte nicht geändert werden: ",
       wx_min: "Min ", wx_max: "Max ",
       wmo: { 0: "klar", 1: "überwiegend klar", 2: "teilweise bewölkt", 3: "bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen", 71: "Schnee", 80: "Schauer", 95: "Gewitter" }
     }
@@ -67,6 +94,7 @@
     opacity: 0.75,
     wallpaperDim: 0,
     wallpaperIdx: 0,
+    wallpaper: "",        // "" follows the theme, "plain" = theme colours, else a path from DATA.wallpapers
     proceduralBg: false,
     tempUnit: "C",
     weatherCity: "Alessandria",
@@ -85,8 +113,10 @@
     pcHost: "",
     pcSimulated: false,
     aiCredits: "percent",
+    clockFormat: "auto",   // "auto" (12 h in English, 24 h otherwise), "12" or "24"
     widgets: { term: true, weather: true, pc: true, ai: true, deploy: false },
-    hiddenApps: []
+    hiddenApps: [],
+    appOrder: []   // app ids in the user's order; apps not listed keep their DEFAULT_APPS position after them
   };
 
   var cfg = Object.assign({}, DEFAULT_CFG);
@@ -147,8 +177,13 @@
     modalOpen: false,
     modalItems: [],
     modalIdx: 0,
+    movingId: null,     // id of the app being moved (long OK › Move), null otherwise
+    moveSnapshot: null, // cfg.appOrder before the move, restored on Back
+    okTimer: null,      // pending long-press timer for OK on an app tile
+    okHeld: false,      // OK is still held after a long press: ignore its repeats and key-up
     weather: { tempC: 9, minC: 6, maxC: 16, code: 0, city: cfg.weatherCity || "Alessandria" },
-    pcStatus: null
+    pcStatus: null,
+    root: null    // rooted-TV helper: null = not checked yet, false = no Homebrew Channel, else { boot, home }
   };
 
   window.__OMARCHY_STATE = state;
@@ -206,7 +241,10 @@
 
     var wl = document.getElementById("wallpaper-layer");
     var wlist = DATA.wallpapers[cfg.theme] || [];
-    if (cfg.proceduralBg || !wlist.length) {
+    var picked = cfg.wallpaper && cfg.wallpaper !== "plain" && allWallpapers().indexOf(cfg.wallpaper) >= 0 ? cfg.wallpaper : "";
+    if (picked) {
+      wl.style.backgroundImage = "url('" + picked + "')";
+    } else if (cfg.proceduralBg || cfg.wallpaper === "plain" || !wlist.length) {
       wl.style.backgroundImage = "radial-gradient(circle at 75% 20%, " + hexToRgba(t.accent, 0.22) + " 0%, " + t.bg + " 70%)";
     } else {
       var wp = wlist[cfg.wallpaperIdx % wlist.length];
@@ -214,6 +252,13 @@
     }
     var dim = document.getElementById("wallpaper-dim");
     dim.style.background = "rgba(0,0,0," + (cfg.wallpaperDim || 0) + ")";
+  }
+
+  // Every bundled background, in theme order (DATA.wallpapers: theme -> list of paths).
+  function allWallpapers() {
+    var out = [];
+    Object.keys(DATA.wallpapers || {}).forEach(function (th) { out = out.concat(DATA.wallpapers[th]); });
+    return out;
   }
 
   function fitStage() {
@@ -238,10 +283,17 @@
       it: ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"],
       de: ["jan","feb","mär","apr","mai","jun","jul","aug","sep","okt","nov","dez"]
     }[lang] || ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+    document.getElementById("bar-clock").textContent = days[d.getDay()] + " " + d.getDate() + " " + months[d.getMonth()] + "  " + clockText(d);
+  }
+
+  // 12 or 24 hour time for the bar and the screensaver clock (cfg.clockFormat, "auto" follows the language).
+  function use24h() {
+    return cfg.clockFormat === "24" || (cfg.clockFormat !== "12" && getLang() !== "en");
+  }
+  function clockText(d) {
     var h = d.getHours();
     var m = ("0" + d.getMinutes()).slice(-2);
-    var timeStr = lang === "en" ? (((h + 11) % 12 + 1) + ":" + m + (h >= 12 ? " PM" : " AM")) : (("0" + h).slice(-2) + ":" + m);
-    document.getElementById("bar-clock").textContent = days[d.getDay()] + " " + d.getDate() + " " + months[d.getMonth()] + "  " + timeStr;
+    return use24h() ? ("0" + h).slice(-2) + ":" + m : ((h + 11) % 12 + 1) + ":" + m + (h >= 12 ? " PM" : " AM");
   }
 
   var logoTimer = null;
@@ -416,8 +468,19 @@
     }).catch(function () {});
   }
 
+  // DEFAULT_APPS sorted by cfg.appOrder; ids missing from the order keep their default position after it.
+  function orderedApps() {
+    var order = cfg.appOrder || [];
+    return DEFAULT_APPS.slice().sort(function (a, b) {
+      var ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+      if (ia < 0) ia = order.length + DEFAULT_APPS.indexOf(a);
+      if (ib < 0) ib = order.length + DEFAULT_APPS.indexOf(b);
+      return ia - ib;
+    });
+  }
+
   function visibleApps() {
-    return DEFAULT_APPS.filter(function (a) {
+    return orderedApps().filter(function (a) {
       if (a.id === "tv" && !cfg.tvEnabled) return false;
       return cfg.hiddenApps.indexOf(a.id) < 0;
     });
@@ -450,7 +513,7 @@
     slice.forEach(function (app, i) {
       var realIdx = state.dockScroll + i;
       var d = document.createElement("div");
-      d.className = "app-tile" + (state.ws === 0 && state.zone === "dock" && state.dockIdx === realIdx ? " focused" : "");
+      d.className = "app-tile" + (state.ws === 0 && state.zone === "dock" && state.dockIdx === realIdx ? " focused" : "") + (app.id === state.movingId ? " moving" : "");
       d.innerHTML = buildTileHTML(app);
       d.onclick = function () { state.zone = "dock"; state.dockIdx = realIdx; renderAll(); launchApp(app); };
       // renderAll() rebuilds the strip, so only re-render when focus actually moves; otherwise the
@@ -465,6 +528,9 @@
     var cur = apps[state.dockIdx] || apps[0] || { name: "OmarchyTV", id: "tv" };
     document.getElementById("dock-app-name").textContent = cur.name;
     document.getElementById("dock-hint").textContent = cur.id === "tv" ? tr("hint_tv") : tr("hint_app");
+    var banner = document.getElementById("arrange-banner");
+    banner.textContent = tr("move_hint");
+    banner.style.display = state.movingId ? "block" : "none";
   }
 
   function renderWorkspaces() {
@@ -530,7 +596,7 @@
       var all = visibleApps();
       all.forEach(function (app, i) {
         var d = document.createElement("div");
-        d.className = "app-tile" + (state.zone === "ws3" && state.ws3Idx === i ? " focused" : "");
+        d.className = "app-tile" + (state.zone === "ws3" && state.ws3Idx === i ? " focused" : "") + (app.id === state.movingId ? " moving" : "");
         d.innerHTML = buildTileHTML(app);
         d.onclick = function () { state.zone = "ws3"; state.ws3Idx = i; renderAll(); launchApp(app); };
         g3.appendChild(d);
@@ -618,6 +684,25 @@
     renderModalList();
   }
 
+  // Text field in a menu (Walker, city, PC address). Backspace edits the text instead of closing the
+  // menu, and ▼ OK leave the field first: while it keeps focus, webOS sends OK to the on-screen
+  // keyboard instead of the list. ▲ on the first list item goes back into the field.
+  var modalInput = document.getElementById("modal-input");
+  modalInput.addEventListener("keydown", function (e) {
+    var k = e.key || { 8: "Backspace", 13: "Enter", 38: "ArrowUp", 40: "ArrowDown" }[e.keyCode];
+    if (k === "Backspace" || k === "ArrowUp") e.stopPropagation();   // edit text / stay in the field
+    else if (k === "ArrowDown") { modalInput.blur(); e.stopPropagation(); }   // land on the first item
+    else if (k === "Enter") modalInput.blur();                                  // pick the highlighted item
+  });
+  document.addEventListener("keydown", function (e) {
+    var up = e.key === "ArrowUp" || e.keyCode === 38;
+    if (!up || !state.modalOpen || state.modalIdx !== 0 || document.activeElement === modalInput) return;
+    if (document.getElementById("modal-input-wrap").style.display !== "block") return;
+    modalInput.focus();
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+
   function closeModal() {
     state.modalOpen = false;
     document.getElementById("modal-backdrop").className = "";
@@ -651,7 +736,7 @@
       };
     });
     var curIdx = names.indexOf(cfg.theme);
-    openModal(tr("sys_themes") + " (23 stock Omarchy 2.11.0)", "Select a theme (MIT omarchy.webp + Liftoff Sunset)", items);
+    openModal(tr("sys_themes") + " (" + names.length + ")", "Select a theme (MIT omarchy.webp + Liftoff Sunset)", items);
     if (curIdx >= 0) { state.modalIdx = curIdx; renderModalList(); }
   }
 
@@ -728,35 +813,171 @@
     if (keepFocus) { state.modalIdx = Math.min(focus, state.modalItems.length - 1); renderModalList(); }
   }
 
-  function openAllSettingsModal() {
+  // ---- Rooted TVs: open at start-up and take over the Home button -------------------------------
+  // Homebrew Channel's exec service runs shell commands as root. Toggling a setting creates or removes
+  // a flag file in ROOT_FLAGS and installs ROOT_HOOK, which Homebrew Channel runs at boot to start
+  // rooted/omarchytv-home.sh from this app's folder (see that script). Unrooted TVs have no such
+  // service: the settings say so, and homewatch/ covers them from another machine.
+  var ROOT_FLAGS = "/var/lib/omarchytv";
+  var ROOT_HOOK = "/var/lib/webosbrew/init.d/omarchytv";   // run-parts skips names with a dot
+  var ROOT_PID = "/tmp/omarchytv-home.pid";                // written by rooted/omarchytv-home.sh
+  var rootCalls = [];                                       // keep bridges alive until they answer
+
+  function rootExec(cmd, cb) {
+    if (!window.PalmServiceBridge) { cb(false, "not running on webOS"); return; }
+    var b = new PalmServiceBridge();
+    rootCalls.push(b);
+    b.onservicecallback = function (msg) {
+      rootCalls.splice(rootCalls.indexOf(b), 1);
+      var r = {};
+      try { r = JSON.parse(msg); } catch (e) {}
+      cb(!!r.returnValue, r.returnValue ? (r.stdoutString || "") : (r.errorText || r.stderrString || "error"));
+    };
+    b.call("luna://org.webosbrew.hbchannel.service/exec", JSON.stringify({ command: cmd }));
+  }
+
+  function rootRefresh(done) {
+    rootExec("ls " + ROOT_FLAGS + " 2>/dev/null; true", function (ok, out) {
+      state.root = ok ? { boot: /(^|\s)boot(\s|$)/.test(out), home: /(^|\s)home(\s|$)/.test(out) } : false;
+      if (done) done();
+    });
+  }
+
+  function rootSet(flag, on, done) {
+    var dir = decodeURIComponent(location.pathname.replace(/\/[^\/]*$/, ""));
+    var script = dir + "/rooted/omarchytv-home.sh";
+    var cmd = on
+      ? "mkdir -p " + ROOT_FLAGS + " && touch " + ROOT_FLAGS + "/" + flag +
+        " && printf '#!/bin/sh\\n# OmarchyTV start-up and Home-button helper (rooted TVs)\\nS=\"%s\"\\n[ -f \"$S\" ] && setsid sh \"$S\" </dev/null >/dev/null 2>&1 &\\n' '" + script + "' > " + ROOT_HOOK +
+        " && chmod 755 " + ROOT_HOOK +
+        " && (setsid sh '" + script + "' --no-boot </dev/null >/dev/null 2>&1 &)"
+      : "rm -f " + ROOT_FLAGS + "/" + flag +
+        // no Home redirect wanted: stop the helper's process group (it waits on a luna subscription)
+        "; [ -f " + ROOT_FLAGS + "/home ] || { p=$(cat " + ROOT_PID + " 2>/dev/null) && kill -- -$p; rm -f " + ROOT_PID + "; }" +
+        "; [ -f " + ROOT_FLAGS + "/boot ] || [ -f " + ROOT_FLAGS + "/home ] || rm -f " + ROOT_HOOK + "; true";
+    rootExec(cmd, function (ok, out) {
+      if (!ok) showToast(tr("root_failed") + out);
+      rootRefresh(done);
+    });
+  }
+
+  function rootRow(flag, label) {
+    var st = state.root;
+    return { label: label, right: st === null ? "…" : st === false ? tr("root_needed") : (st[flag] ? "on" : "off"), act: function () {
+      if (!state.root) { showToast(tr("root_missing")); return; }
+      rootSet(flag, !state.root[flag], function () { if (state.modalOpen) openAllSettingsModal(true); });
+    } };
+  }
+
+  function openAllSettingsModal(keepFocus) {
+    var focus = state.modalIdx;
     var wlist = DATA.wallpapers[cfg.theme] || [];
+    if (state.root === null) rootRefresh(function () { if (state.modalOpen) openAllSettingsModal(true); });
     openModal(tr("sys_all"), "OmarchyTV 2.11.0-testing (LG webOS)", [
       { label: "Language", right: cfg.lang || "auto", act: function () {
         var l = ["", "en", "it", "de"];
         cfg.lang = l[(l.indexOf(cfg.lang) + 1) % l.length];
-        saveCfg(); renderAll(); openAllSettingsModal();
+        saveCfg(); updateClock(); renderAll(); openAllSettingsModal();
+      } },
+      { label: tr("sys_clock"), right: cfg.clockFormat === "12" || cfg.clockFormat === "24" ? cfg.clockFormat + " h" : "auto (" + (use24h() ? "24" : "12") + " h)", act: function () {
+        var f = ["auto", "12", "24"], at = state.modalIdx;
+        cfg.clockFormat = f[(f.indexOf(cfg.clockFormat) + 1) % f.length];
+        saveCfg(); updateClock(); openAllSettingsModal();
+        state.modalIdx = at; renderModalList();   // stay on this row so OK keeps cycling
       } },
       { label: "Next background", right: wlist.length ? ((cfg.wallpaperIdx % wlist.length) + 1) + "/" + wlist.length : "procedural", act: function () {
-        cfg.wallpaperIdx++; saveCfg(); applyTheme(); openAllSettingsModal();
+        cfg.wallpaperIdx++; cfg.wallpaper = ""; saveCfg(); applyTheme(); openAllSettingsModal();
       } },
       { label: "Wallpaper dimming", right: Math.round((cfg.wallpaperDim || 0) * 100) + "%", act: function () {
         var d = [0, 0.25, 0.5];
         cfg.wallpaperDim = d[(d.indexOf(cfg.wallpaperDim) + 1) % d.length];
         saveCfg(); applyTheme(); openAllSettingsModal();
       } },
+      { label: tr("wp_title"), right: "›", act: function () { openWallpaperModal(); } },
       { label: "Show TV tile on dock", right: cfg.tvEnabled ? "on" : "off", act: function () {
         cfg.tvEnabled = !cfg.tvEnabled; saveCfg(); renderAll(); openAllSettingsModal();
       } },
+      { label: tr("hidden_apps"), right: String(cfg.hiddenApps.length) + " ›", act: openHiddenAppsModal },
+      { label: tr("reset_order"), right: "", act: function () {
+        cfg.appOrder = []; saveCfg(); renderAll(); showToast(tr("order_reset"));
+      } },
       { label: "Temperature unit", right: "°" + cfg.tempUnit, act: function () {
-        cfg.tempUnit = cfg.tempUnit === "C" ? "F" : "C"; saveCfg(); renderAll(); openAllSettingsModal();
-      } }
+        cfg.tempUnit = cfg.tempUnit === "C" ? "F" : "C"; saveCfg(); renderAll(); openAllSettingsModal(true);
+      } },
+      rootRow("boot", tr("root_boot")),
+      rootRow("home", tr("root_home"))
     ]);
+    if (keepFocus) { state.modalIdx = Math.min(focus, state.modalItems.length - 1); renderModalList(); }
+  }
+
+  // Long OK on an app tile (dock or All apps): Move / Hide. The TV tile opens Walker instead.
+  function openTileMenu(app) {
+    if (!app) return;
+    if (app.id === "tv") { openWalkerModal(); return; }
+    openModal(app.name, app.appId, [
+      { label: tr("tile_move"), right: "◀▶", act: function () { closeModal(); startMove(app.id); } },
+      { label: tr("tile_hide"), right: "", act: function () {
+        if (cfg.hiddenApps.indexOf(app.id) < 0) cfg.hiddenApps.push(app.id);
+        saveCfg(); closeModal(); showToast(tr("app_hidden"));
+      } },
+      { label: tr("tile_cancel"), right: "", act: closeModal }
+    ]);
+  }
+
+  function openHiddenAppsModal() {
+    var items = DEFAULT_APPS.filter(function (a) { return cfg.hiddenApps.indexOf(a.id) >= 0; }).map(function (a) {
+      return { label: a.name, right: "show", act: function () {
+        cfg.hiddenApps = cfg.hiddenApps.filter(function (id) { return id !== a.id; });
+        saveCfg(); renderAll();
+        if (cfg.hiddenApps.length) openHiddenAppsModal(); else closeModal();
+      } };
+    });
+    if (!items.length) items = [{ label: tr("hidden_none"), right: "", act: closeModal }];
+    openModal(tr("hidden_apps"), tr("hidden_sub"), items);
+  }
+
+  function startMove(id) {
+    state.movingId = id;
+    state.moveSnapshot = (cfg.appOrder || []).slice();
+    state.moveFocus = state.ws === 2 ? state.ws3Idx : state.dockIdx;
+    // Pin the current order so every app has an explicit position while it moves.
+    cfg.appOrder = orderedApps().map(function (a) { return a.id; });
+    renderAll();
+  }
+
+  // Move the app being moved by `delta` places among the visible apps (hidden ones keep their slots).
+  function moveBy(delta) {
+    var vis = visibleApps();
+    var from = -1;
+    for (var i = 0; i < vis.length; i++) if (vis[i].id === state.movingId) from = i;
+    var first = vis[0] && vis[0].id === "tv" ? 1 : 0;   // the TV tile stays first
+    var to = Math.max(first, Math.min(vis.length - 1, from + delta));
+    if (from < 0 || to === from) return;
+    var order = cfg.appOrder.slice();
+    order.splice(order.indexOf(state.movingId), 1);
+    var anchor = order.indexOf(vis[to].id);
+    order.splice(to > from ? anchor + 1 : anchor, 0, state.movingId);
+    cfg.appOrder = order;
+    if (state.ws === 2) state.ws3Idx = to; else state.dockIdx = to;
+    renderAll();
+  }
+
+  function finishMove(save) {
+    if (!save) {
+      cfg.appOrder = state.moveSnapshot || [];
+      if (state.ws === 2) state.ws3Idx = state.moveFocus; else state.dockIdx = state.moveFocus;
+    }
+    state.movingId = null;
+    state.moveSnapshot = null;
+    saveCfg();
+    renderAll();
   }
 
   function openAboutModal() {
     var sub = "OmarchyTV 2.11.0-testing for LG webOS (community testing — NOT a beta)\n" +
       "Based on OmarchyTV v2.11.0 for Android TV by Marco Porro (MIT License).\n" +
-      "Includes 23 Omarchy themes, 20 MIT omarchy.webp wallpapers, 'Liftoff Sunset' by Tom Ballard, and 37 tte.js effects.";
+      "Includes " + Object.keys(DATA.themes).length + " Omarchy themes, " + [].concat.apply([], Object.keys(DATA.wallpapers).map(function (t) { return DATA.wallpapers[t]; })).length +
+      " wallpapers (MIT, and 'Liftoff Sunset' by Tom Ballard), and 37 tte.js effects.";
     openModal(tr("sys_about"), sub, [
       { label: "Version", right: "2.11.0-testing (webOS)", act: closeModal },
       { label: "Android base release", right: "2.11.0", act: closeModal },
@@ -769,6 +990,7 @@
     function buildList(q) {
       var f = (q || "").toLowerCase();
       var apps = visibleApps().filter(function (a) { return !f || a.name.toLowerCase().indexOf(f) >= 0; });
+      if (!apps.length) return [{ label: tr("walker_none"), right: "" }];
       return apps.map(function (a) {
         return { label: a.name, right: a.appId, act: function () { closeModal(); launchApp(a); } };
       });
@@ -780,10 +1002,32 @@
     });
   }
 
+  // Wallpaper picker: follow the theme (default), plain theme colours, or any theme's background.
+  // Picking applies at once and keeps the menu open on that row, so you can compare a few.
+  function openWallpaperModal(keepFocus) {
+    var focus = state.modalIdx;
+    function pick(v) { cfg.wallpaper = v; saveCfg(); applyTheme(); openWallpaperModal(true); }
+    var items = [
+      { label: tr("wp_follow"), right: cfg.wallpaper ? "" : "✓", act: function () { pick(""); } },
+      { label: tr("wp_plain"), right: cfg.wallpaper === "plain" ? "✓" : "", act: function () { pick("plain"); } }
+    ];
+    allWallpapers().forEach(function (p) {
+      var parts = p.split("/");   // wallpapers/<theme>/<NN-name>.webp
+      var name = parts[parts.length - 1].replace(/^\d+-/, "").replace(/\.\w+$/, "");
+      items.push({ label: parts[parts.length - 2] + " · " + name, right: cfg.wallpaper === p ? "✓" : "", act: function () { pick(p); } });
+    });
+    openModal(tr("wp_title"), tr("wp_sub"), items);
+    var cur = 0;
+    items.forEach(function (it, i) { if (it.right === "✓") cur = i; });
+    state.modalIdx = keepFocus ? Math.min(focus, items.length - 1) : cur;
+    renderModalList();
+  }
+
   function openOmarchyMenu() {
     openModal("Omarchy Menu", "OmarchyTV 2.11.0-testing (LG webOS)", [
       { label: "Walker (app launcher)", right: "›", act: openWalkerModal },
       { label: tr("sys_themes"), right: cfg.theme, act: openThemesModal },
+      { label: tr("wp_title"), right: "›", act: function () { openWallpaperModal(); } },
       { label: tr("wx_title"), right: "°" + cfg.tempUnit, act: openWeatherModal },
       { label: tr("sys_saver"), right: "›", act: openSaverModal },
       { label: tr("sys_all"), right: "›", act: openAllSettingsModal },
@@ -804,6 +1048,7 @@
     color: function () { return currentThemeObj().accent; },
     clockColor: function () { return currentThemeObj().fg; },
     showClock: function () { return !!cfg.saverShowClock; },
+    clockText: function (d) { return clockText(d); },
     widthFraction: function () { return cfg.saverLogoScale || 0.65; },
     exclude: function () { return ""; },
     forceEffect: function () { return ""; },
@@ -980,6 +1225,22 @@
     var k = e.key || LEGACY_KEYS[code] || (code >= 48 && code <= 57 ? String(code - 48) : "");
     var isBack = (k === "Escape" || k === "Backspace" || code === 461);
 
+    // A long press opened a menu while OK is still held: drop its auto-repeat so it can't pick an item.
+    if (state.okHeld && k === "Enter") { e.preventDefault(); return; }
+
+    if (state.movingId) {
+      var step = state.ws === 2 ? 7 : 0;
+      if (k === "ArrowLeft") moveBy(-1);
+      else if (k === "ArrowRight") moveBy(1);
+      else if (k === "ArrowUp" && step) moveBy(-step);
+      else if (k === "ArrowDown" && step) moveBy(step);
+      else if (k === "Enter") finishMove(true);
+      else if (isBack) finishMove(false);
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     if (state.modalOpen) {
       if (isBack) { closeModal(); e.preventDefault(); return; }
       if (k === "ArrowDown") { state.modalIdx = (state.modalIdx + 1) % Math.max(1, state.modalItems.length); renderModalList(); e.preventDefault(); return; }
@@ -1040,13 +1301,19 @@
       if (k === "ArrowRight") { state.dockIdx = Math.min(apps.length - 1, state.dockIdx + 1); renderAll(); e.preventDefault(); return; }
       if (k === "ArrowLeft") { state.dockIdx = Math.max(0, state.dockIdx - 1); renderAll(); e.preventDefault(); return; }
       if (k === "ArrowUp") { state.zone = "widgets"; renderAll(); e.preventDefault(); return; }
-      if (k === "Enter") { launchApp(apps[state.dockIdx]); e.preventDefault(); return; }
+      if (k === "Enter") { pressOk(apps[state.dockIdx]); e.preventDefault(); return; }
     }
 
     if (state.ws === 1 && state.zone === "ws2") {
       if (k === "ArrowRight") { state.ws2Idx = Math.min(TV_INPUTS.length - 1, state.ws2Idx + 1); renderAll(); e.preventDefault(); return; }
       if (k === "ArrowLeft") { state.ws2Idx = Math.max(0, state.ws2Idx - 1); renderAll(); e.preventDefault(); return; }
-      if (k === "ArrowUp") { state.zone = "bar"; renderAll(); e.preventDefault(); return; }
+      // 4 tiles per row (#ws2-grid): ▼ goes to the row below, ▲ to the row above or the bar
+      if (k === "ArrowDown") { if (state.ws2Idx + 4 < TV_INPUTS.length) { state.ws2Idx += 4; renderAll(); } e.preventDefault(); return; }
+      if (k === "ArrowUp") {
+        if (state.ws2Idx >= 4) state.ws2Idx -= 4;
+        else state.zone = "bar";
+        renderAll(); e.preventDefault(); return;
+      }
       if (k === "Enter") { launchApp(TV_INPUTS[state.ws2Idx]); e.preventDefault(); return; }
     }
 
@@ -1060,7 +1327,7 @@
         else state.zone = "bar";
         renderAll(); e.preventDefault(); return;
       }
-      if (k === "Enter") { launchApp(all[state.ws3Idx]); e.preventDefault(); return; }
+      if (k === "Enter") { pressOk(all[state.ws3Idx]); e.preventDefault(); return; }
     }
 
     if (state.ws === 3 && state.zone === "ws4") {
@@ -1072,7 +1339,7 @@
           cfg.pcSimulated = !cfg.pcSimulated;
           saveCfg(); pollPcStatus(); renderAll();
         } else {
-          openModal("Pair Omarchy Linux PC", "Enter your Omarchy PC LAN IP (serves http://<ip>:8765/status.json):", [
+          openModal("Pair Omarchy Linux PC", "Enter your Omarchy PC LAN IP (serves http://<ip>:8765/v1/status):", [
             { label: "Use 192.168.1.100:8765", right: "LAN", act: function () { cfg.pcHost = "192.168.1.100"; saveCfg(); pollPcStatus(); closeModal(); } },
             { label: "Toggle simulated PC link", right: cfg.pcSimulated ? "on" : "off", act: function () { cfg.pcSimulated = !cfg.pcSimulated; saveCfg(); pollPcStatus(); closeModal(); } }
           ], "192.168.1.x");
@@ -1090,6 +1357,37 @@
         renderAll(); e.preventDefault(); return;
       }
       if (k === "Enter") { rows[state.ws5Idx].act(); e.preventDefault(); return; }
+    }
+  });
+
+  // OK on an app tile: a short press launches on key-up, holding it for LONG_OK_MS opens the tile menu.
+  var LONG_OK_MS = 600;
+  function pressOk(app) {
+    if (state.okTimer) return; // auto-repeat while held
+    state.okTimer = setTimeout(function () {
+      state.okTimer = null;
+      state.okHeld = true;
+      // Walker focuses its search field, which brings up webOS's on-screen keyboard; opened while OK
+      // is still held, the keyboard would take OK's auto-repeat and type letters. Open it on release.
+      if (app && app.id === "tv") state.walkerOnRelease = true;
+      else openTileMenu(app);
+    }, LONG_OK_MS);
+    state.okApp = app;
+  }
+
+  window.addEventListener("keyup", function (e) {
+    if (e.keyCode !== 13 && e.key !== "Enter") return;
+    if (state.okHeld) {
+      state.okHeld = false;
+      if (state.walkerOnRelease) { state.walkerOnRelease = false; openWalkerModal(); }
+      e.preventDefault();
+      return;
+    }
+    if (state.okTimer) {
+      clearTimeout(state.okTimer);
+      state.okTimer = null;
+      launchApp(state.okApp);
+      e.preventDefault();
     }
   });
 
