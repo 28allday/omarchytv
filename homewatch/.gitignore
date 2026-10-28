@@ -1,0 +1,6 @@
+.env
+client-key.json
+data/
+__pycache__/
+*.py[cod]
+.venv/
