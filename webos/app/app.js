@@ -453,7 +453,12 @@
       d.className = "app-tile" + (state.ws === 0 && state.zone === "dock" && state.dockIdx === realIdx ? " focused" : "");
       d.innerHTML = buildTileHTML(app);
       d.onclick = function () { state.zone = "dock"; state.dockIdx = realIdx; renderAll(); launchApp(app); };
-      d.onmouseenter = function () { if (!state.modalOpen && state.ws === 0) { state.zone = "dock"; state.dockIdx = realIdx; renderAll(); } };
+      // renderAll() rebuilds the strip, so only re-render when focus actually moves; otherwise the
+      // tile under the pointer is replaced on every hover and a click never lands.
+      d.onmouseenter = function () {
+        if (state.modalOpen || state.ws !== 0 || (state.zone === "dock" && state.dockIdx === realIdx)) return;
+        state.zone = "dock"; state.dockIdx = realIdx; renderAll();
+      };
       strip.appendChild(d);
     });
 
@@ -952,6 +957,14 @@
     if (state.modalOpen) renderModalList();
   }
 
+  function activateBarItem(idx) {
+    if (idx === 0) openOmarchyMenu();
+    else if (idx >= 1 && idx <= 5) switchWorkspace(idx - 1);
+    else if (idx === 9) switchWorkspace(1);
+    else if (idx === 10) startScreensaver();
+    else launchApp({ name: "LG Settings", appId: "com.palm.app.settings" });
+  }
+
   // Keyboard / LG Remote Navigation
   var LEGACY_KEYS = { 8: "Backspace", 13: "Enter", 27: "Escape", 37: "ArrowLeft", 38: "ArrowUp", 39: "ArrowRight", 40: "ArrowDown" };
   window.addEventListener("keydown", function (e) {
@@ -1004,14 +1017,7 @@
         else state.zone = "ws" + (state.ws + 1);
         renderAll(); e.preventDefault(); return;
       }
-      if (k === "Enter") {
-        if (state.barIdx === 0) openOmarchyMenu();
-        else if (state.barIdx >= 1 && state.barIdx <= 5) switchWorkspace(state.barIdx - 1);
-        else if (state.barIdx === 9) switchWorkspace(1);
-        else if (state.barIdx === 10) startScreensaver();
-        else launchApp({ name: "LG Settings", appId: "com.palm.app.settings" });
-        e.preventDefault(); return;
-      }
+      if (k === "Enter") { activateBarItem(state.barIdx); e.preventDefault(); return; }
       return;
     }
 
@@ -1088,6 +1094,26 @@
   });
 
   // Click bindings for Waybar and Widgets
+  var waybarButtons = document.querySelectorAll("[data-bar-idx]");
+  for (var bi = 0; bi < waybarButtons.length; bi++) {
+    (function (button) {
+      var idx = parseInt(button.getAttribute("data-bar-idx"), 10);
+      button.onclick = function () {
+        if (state.modalOpen) return;
+        state.barIdx = idx;
+        state.zone = "bar";
+        renderAll();
+        activateBarItem(idx);
+      };
+      button.onmouseenter = function () {
+        if (state.modalOpen) return;
+        state.barIdx = idx;
+        state.zone = "bar";
+        renderAll();
+      };
+    })(waybarButtons[bi]);
+  }
+
   document.getElementById("wx-box").onclick = openWeatherModal;
   document.getElementById("term-box").onclick = openThemesModal;
   document.getElementById("pc-box").onclick = function () { switchWorkspace(3); };
