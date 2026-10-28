@@ -35,6 +35,15 @@ if [ -d "$ANDROID_MAIN" ]; then
   cp -rf "$ANDROID_MAIN/assets/saver/tte-js" "$APP/saver/"
 fi
 
+# Some themes ship their WebP base64-wrapped (a text file starting "UklG", see WallpaperView.java).
+# The Android launcher unwraps them in code; a webOS page loads files as they are, so unwrap here.
+if base64 -d </dev/null >/dev/null 2>&1; then B64D="base64 -d"; else B64D="base64 -D"; fi   # macOS < 13: -D
+for f in "$APP"/wallpapers/*/*.webp; do
+  if [ "$(head -c 4 "$f")" = "UklG" ]; then
+    $B64D < "$f" > "$f.bin" && mv -f "$f.bin" "$f"
+  fi
+done
+
 OUT_DIR="${1:-$SCRIPT_DIR}"
 mkdir -p "$OUT_DIR"
 ares-package "$APP" -o "$OUT_DIR"
