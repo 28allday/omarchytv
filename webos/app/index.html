@@ -627,7 +627,8 @@ html, body {
 /* Toast notification */
 #toast {
   position: absolute;
-  bottom: 44px;
+  /* above the Home dock window (top edge at y=788), so it never covers the tiles */
+  bottom: 304px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--popup-bg);
