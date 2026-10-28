@@ -36,7 +36,7 @@ window.addEventListener('mousedown',dismiss,true);
     if(S&&S.showClock&&S.showClock()){
       clk.style.display='block';
       var d=new Date();
-      clk.textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      clk.textContent=S&&S.clockText?S.clockText(d):d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     }else{
       clk.style.display='none';
     }
